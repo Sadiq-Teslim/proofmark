@@ -1,0 +1,45 @@
+# Render blueprint for ProofMark: API (Node) + web (static Vite build).
+# MongoDB is external (Atlas) — set MONGO_URI as a secret in the dashboard.
+services:
+  - type: web
+    name: proofmark-api
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: FPWM_BASE_URL
+        value: https://watermarking-engine.onrender.com
+      - key: FPWM_API_KEY
+        sync: false
+      - key: FPWM_IMAGE_ENGINE
+        value: qim-dct
+      - key: CLIENT_URL
+        sync: false
+
+  - type: web
+    name: proofmark-web
+    runtime: static
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
