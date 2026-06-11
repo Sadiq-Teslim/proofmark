@@ -1,11 +1,11 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-// Someone a user issues a marked copy to (the traceable party).
-const recipientSchema = new mongoose.Schema({
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  name: { type: String, required: true, trim: true },
-  email: { type: String, default: '', lowercase: true, trim: true },
-  label: { type: String, default: '' },
-}, { timestamps: true });
+const Recipient = sequelize.define('Recipient', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  name: { type: DataTypes.STRING, allowNull: false },
+  email: { type: DataTypes.STRING, defaultValue: '' },
+  label: { type: DataTypes.STRING, defaultValue: '' },
+}, { tableName: 'recipients' });
 
-module.exports = mongoose.model('Recipient', recipientSchema);
+module.exports = Recipient;

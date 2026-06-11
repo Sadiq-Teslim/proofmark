@@ -1,9 +1,14 @@
-const mongoose = require('mongoose');
+const { Sequelize } = require('sequelize');
 
-const connectDB = async () => {
-  if (!process.env.MONGO_URI) throw new Error('MONGO_URI is required');
-  await mongoose.connect(process.env.MONGO_URI);
-  console.log('ProofMark: MongoDB connected');
-};
+if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
 
-module.exports = connectDB;
+// Render (and most hosted Postgres) require SSL; local dev does not.
+const isLocal = /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL);
+
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  logging: false,
+  dialectOptions: isLocal ? {} : { ssl: { require: true, rejectUnauthorized: false } },
+});
+
+module.exports = sequelize;

@@ -1,20 +1,21 @@
 # ProofMark Deployment
 
-Two services (Render blueprint in `render.yaml`): **proofmark-api** (Node) and
-**proofmark-web** (static Vite build). MongoDB is external (Atlas).
+Three components (Render blueprint in `render.yaml`): **proofmark-db** (managed Postgres),
+**proofmark-api** (Node), and **proofmark-web** (static Vite build). No external database
+needed — Render provisions Postgres and wires `DATABASE_URL` automatically. Tables are
+created on first boot (Sequelize sync).
 
 ## Prereqs
-- A MongoDB Atlas cluster → connection string (`MONGO_URI`).
 - Cloudinary creds (same account as FPWM is fine).
 - FPWM is already live at https://watermarking-engine.onrender.com with its API key.
 
 ## Deploy (Render Blueprint)
 1. Render → **New → Blueprint** → select the `Sadiq-Teslim/proofmark` repo (reads `render.yaml`).
-2. It creates **proofmark-api** + **proofmark-web**. Fill the `sync:false` secrets:
+2. It creates **proofmark-db** + **proofmark-api** + **proofmark-web**. `DATABASE_URL` is
+   auto-wired from the database. Fill the remaining `sync:false` secrets:
 
    **proofmark-api**
    ```
-   MONGO_URI=<your Atlas connection string>
    JWT_SECRET=ede8ffa66a30e3c3f7c52ff9f2436d9fa6bbf73f592577a978291edd8f7537bb
    CLOUDINARY_CLOUD_NAME=dw8tqfqaj
    CLOUDINARY_API_KEY=653635422627148
@@ -22,7 +23,7 @@ Two services (Render blueprint in `render.yaml`): **proofmark-api** (Node) and
    FPWM_API_KEY=SpcvQvvzw4E1JWjPngZlc3Orqk6M4CAZ6M8s6bfYT_KnqoPYKDbnXx_LQk_NRisK
    CLIENT_URL=<the proofmark-web URL, set after first deploy>
    ```
-   (FPWM_BASE_URL and FPWM_IMAGE_ENGINE=qim-dct are already in the blueprint.)
+   (DATABASE_URL, FPWM_BASE_URL and FPWM_IMAGE_ENGINE=qim-dct are already wired by the blueprint.)
 
    **proofmark-web**
    ```
@@ -46,4 +47,6 @@ Default is `qim-dct` (live now). For `trustmark`:
 
 ## Notes
 - Free Render instances sleep when idle (first request slow). Use paid for production.
-- Atlas: allow Render egress IPs (or 0.0.0.0/0 for testing) in Network Access.
+- The `proofmark-db` blueprint plan is `free` (expires after ~30 days) — upgrade for production.
+- Tables auto-create on boot via Sequelize `sync()`. For schema changes later, switch to
+  migrations rather than relying on sync.

@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const Issuance = require('../models/Issuance');
+const { Asset, Recipient, Issuance } = require('../models');
 const { protect } = require('../middleware/auth');
 const fpwm = require('../services/fpwmClient');
 
@@ -20,9 +20,13 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       return res.json({ found: false, detected, message: 'No watermark detected' });
     }
 
-    const issuance = await Issuance.findOne({ payload: detected.payload, owner: req.user._id })
-      .populate('asset', 'title originalUrl')
-      .populate('recipient', 'name email');
+    const issuance = await Issuance.findOne({
+      where: { payload: detected.payload, userId: req.user.id },
+      include: [
+        { model: Asset, as: 'asset', attributes: ['id', 'title', 'originalUrl'] },
+        { model: Recipient, as: 'recipient', attributes: ['id', 'name', 'email'] },
+      ],
+    });
 
     if (!issuance) {
       return res.json({

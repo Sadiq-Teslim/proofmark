@@ -1,15 +1,14 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-// A uniquely-watermarked copy of an asset, issued to one recipient.
 // `payload` is the forensic id embedded by FPWM — globally unique for reverse lookup.
-const issuanceSchema = new mongoose.Schema({
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  asset: { type: mongoose.Schema.Types.ObjectId, ref: 'Asset', required: true },
-  recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipient', required: true },
-  payload: { type: Number, required: true, unique: true, index: true },
-  engine: { type: String, default: 'qim-dct' },
-  watermarkedUrl: { type: String, required: true },
-  watermarkedPublicId: { type: String, default: '' },
-}, { timestamps: true });
+// 28-bit space fits in a Postgres INTEGER (max ~2.1B), so it serializes as a JS number.
+const Issuance = sequelize.define('Issuance', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  payload: { type: DataTypes.INTEGER, allowNull: false, unique: true },
+  engine: { type: DataTypes.STRING, defaultValue: 'qim-dct' },
+  watermarkedUrl: { type: DataTypes.TEXT, allowNull: false },
+  watermarkedPublicId: { type: DataTypes.STRING, defaultValue: '' },
+}, { tableName: 'issuances' });
 
-module.exports = mongoose.model('Issuance', issuanceSchema);
+module.exports = Issuance;

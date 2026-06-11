@@ -1,12 +1,12 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
 
-// An original image a user wants to protect and issue marked copies of.
-const assetSchema = new mongoose.Schema({
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  title: { type: String, required: true, trim: true },
-  originalUrl: { type: String, required: true },
-  originalPublicId: { type: String, default: '' },
-  mimeType: { type: String, default: 'image/png' },
-}, { timestamps: true });
+const Asset = sequelize.define('Asset', {
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  title: { type: DataTypes.STRING, allowNull: false },
+  originalUrl: { type: DataTypes.TEXT, allowNull: false },
+  originalPublicId: { type: DataTypes.STRING, defaultValue: '' },
+  mimeType: { type: DataTypes.STRING, defaultValue: 'image/png' },
+}, { tableName: 'assets' });
 
-module.exports = mongoose.model('Asset', assetSchema);
+module.exports = Asset;

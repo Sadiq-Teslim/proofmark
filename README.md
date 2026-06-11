@@ -15,9 +15,9 @@ trace(suspect)  ──▶ FPWM /v1/image/detect ─▶ payload ─▶ issuance l
 
 ## Run
 ```bash
-cp .env.example .env     # fill MONGO_URI, JWT_SECRET, CLOUDINARY_*, FPWM_API_KEY
+cp .env.example .env     # fill DATABASE_URL, JWT_SECRET, CLOUDINARY_*, FPWM_API_KEY
 npm install
-npm run dev              # http://localhost:4000
+npm run dev              # http://localhost:4000 (tables auto-create on boot)
 ```
 
 ## API

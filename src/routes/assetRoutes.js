@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const Asset = require('../models/Asset');
+const { Asset } = require('../models');
 const { uploadBuffer } = require('../config/cloudinary');
 const { protect } = require('../middleware/auth');
 
@@ -20,7 +20,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       req.file.buffer, 'proofmark/assets', req.file.mimetype
     );
     const asset = await Asset.create({
-      owner: req.user._id,
+      userId: req.user.id,
       title: req.body.title,
       originalUrl: url,
       originalPublicId: publicId,
@@ -33,12 +33,15 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 });
 
 router.get('/', protect, async (req, res) => {
-  const assets = await Asset.find({ owner: req.user._id }).sort({ createdAt: -1 });
+  const assets = await Asset.findAll({
+    where: { userId: req.user.id },
+    order: [['createdAt', 'DESC']],
+  });
   res.json({ assets });
 });
 
 router.get('/:id', protect, async (req, res) => {
-  const asset = await Asset.findOne({ _id: req.params.id, owner: req.user._id });
+  const asset = await Asset.findOne({ where: { id: req.params.id, userId: req.user.id } });
   if (!asset) return res.status(404).json({ message: 'Asset not found' });
   res.json({ asset });
 });

@@ -1,5 +1,5 @@
 const express = require('express');
-const Recipient = require('../models/Recipient');
+const { Recipient } = require('../models');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -9,7 +9,7 @@ router.post('/', protect, async (req, res) => {
     const { name, email, label } = req.body;
     if (!name) return res.status(400).json({ message: 'name is required' });
     const recipient = await Recipient.create({
-      owner: req.user._id, name, email: email || '', label: label || '',
+      userId: req.user.id, name, email: email || '', label: label || '',
     });
     res.status(201).json({ recipient });
   } catch (error) {
@@ -18,7 +18,10 @@ router.post('/', protect, async (req, res) => {
 });
 
 router.get('/', protect, async (req, res) => {
-  const recipients = await Recipient.find({ owner: req.user._id }).sort({ createdAt: -1 });
+  const recipients = await Recipient.findAll({
+    where: { userId: req.user.id },
+    order: [['createdAt', 'DESC']],
+  });
   res.json({ recipients });
 });
 

@@ -1,5 +1,8 @@
-# Render blueprint for ProofMark: API (Node) + web (static Vite build).
-# MongoDB is external (Atlas) — set MONGO_URI as a secret in the dashboard.
+# Render blueprint for ProofMark: managed Postgres + API (Node) + web (static Vite build).
+databases:
+  - name: proofmark-db
+    plan: free
+
 services:
   - type: web
     name: proofmark-api
@@ -11,8 +14,8 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
-      - key: MONGO_URI
-        sync: false
+      - key: DATABASE_URL
+        fromDatabase: { name: proofmark-db, property: connectionString }
       - key: JWT_SECRET
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
