@@ -1,0 +1,14 @@
+# Netlify build config for the ProofMark client (Vite SPA in client/).
+[build]
+  base = "client"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback so client-side routes (/trace, /issue, …) don't 404 on refresh.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
