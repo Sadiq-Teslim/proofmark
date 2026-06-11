@@ -37,12 +37,12 @@ export default function Issue() {
           <label>Asset</label>
           <select value={assetId} onChange={(e) => setAssetId(e.target.value)} required>
             <option value="">Select an asset…</option>
-            {assets.map((a) => <option key={a._id} value={a._id}>{a.title}</option>)}
+            {assets.map((a) => <option key={a.id} value={a.id}>{a.title}</option>)}
           </select>
           <label>Recipient</label>
           <select value={recipientId} onChange={(e) => setRecipientId(e.target.value)} required>
             <option value="">Select a recipient…</option>
-            {recipients.map((r) => <option key={r._id} value={r._id}>{r.name}</option>)}
+            {recipients.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
           {err && <div className="err">{err}</div>}
           <button disabled={busy}>{busy ? 'Watermarking…' : 'Issue marked copy'}</button>

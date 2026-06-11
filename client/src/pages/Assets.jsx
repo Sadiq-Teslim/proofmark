@@ -46,7 +46,7 @@ export default function Assets() {
       </div>
 
       {assets.map((a) => (
-        <div className="card row" key={a._id} style={{ alignItems: 'center' }}>
+        <div className="card row" key={a.id} style={{ alignItems: 'center' }}>
           <img src={a.originalUrl} alt={a.title} style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 8 }} />
           <div>
             <div style={{ fontWeight: 600 }}>{a.title}</div>

@@ -21,7 +21,7 @@ export default function Issuances() {
           </thead>
           <tbody>
             {issuances.map((i) => (
-              <tr key={i._id}>
+              <tr key={i.id}>
                 <td>{i.asset?.title || '—'}</td>
                 <td>{i.recipient?.name || '—'}</td>
                 <td><span className="tag">#{i.payload}</span></td>

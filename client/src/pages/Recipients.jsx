@@ -46,7 +46,7 @@ export default function Recipients() {
           <thead><tr><th>Name</th><th>Email</th><th>Added</th></tr></thead>
           <tbody>
             {recipients.map((r) => (
-              <tr key={r._id}>
+              <tr key={r.id}>
                 <td>{r.name}</td>
                 <td className="muted">{r.email || '—'}</td>
                 <td className="muted">{new Date(r.createdAt).toLocaleDateString()}</td>
