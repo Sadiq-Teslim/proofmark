@@ -25,7 +25,10 @@ const scanImage = async (image) => {
     if (candidate.imageUrl) {
       try {
         const bytes = await fetchBytes(candidate.imageUrl);
-        const det = await fpwm.detectImage(bytes, 'candidate', image.engine);
+        // We're confirming against ONE known image — pass its exact original size so the
+        // engine can undo any platform resize before reading the mark.
+        const sizes = image.width && image.height ? [[image.width, image.height]] : null;
+        const det = await fpwm.detectImage(bytes, 'candidate', image.engine, sizes);
         if (det.marked && det.payload === image.payload) {
           isConfirmed = true;
           payload = det.payload;

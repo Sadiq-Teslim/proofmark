@@ -12,6 +12,10 @@ const Image = sequelize.define('Image', {
   watermarkedPublicId: { type: DataTypes.STRING, defaultValue: '' },
   payload: { type: DataTypes.INTEGER, allowNull: false, unique: true },
   engine: { type: DataTypes.STRING, defaultValue: 'qim-dct' },
+  // Original dimensions — passed as size hints at detection so the watermark
+  // survives platform resizes (Instagram/Twitter/WhatsApp re-encode pipelines).
+  width: { type: DataTypes.INTEGER },
+  height: { type: DataTypes.INTEGER },
 }, { tableName: 'images' });
 
 module.exports = Image;

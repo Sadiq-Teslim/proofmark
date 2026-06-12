@@ -15,7 +15,19 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'image file is required' });
 
-    const detected = await fpwm.detectImage(req.file.buffer, req.file.originalname, req.body.engine);
+    // Size hints: the distinct original dimensions of this user's registered images let
+    // the engine undo platform resizes (Instagram/Twitter/WhatsApp pipelines).
+    const sized = await Image.findAll({
+      where: { userId: req.user.id },
+      attributes: ['width', 'height'],
+    });
+    const candidateSizes = [...new Set(
+      sized.filter((i) => i.width && i.height).map((i) => `${i.width}x${i.height}`)
+    )].map((s) => s.split('x').map(Number));
+
+    const detected = await fpwm.detectImage(
+      req.file.buffer, req.file.originalname, req.body.engine, candidateSizes
+    );
     if (!detected.marked || !detected.payload) {
       return res.json({ watermarked: false, message: 'No ProofMark watermark detected' });
     }

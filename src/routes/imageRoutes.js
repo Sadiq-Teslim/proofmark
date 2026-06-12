@@ -26,7 +26,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     const marked = await fpwm.watermarkImage(
       req.file.buffer, req.file.originalname, payload, engine
     );
-    const wm = await uploadBuffer(marked, 'proofmark/watermarked', 'image/png');
+    const wm = await uploadBuffer(marked.buffer, 'proofmark/watermarked', 'image/png');
 
     const image = await Image.create({
       userId: req.user.id,
@@ -37,6 +37,8 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       watermarkedPublicId: wm.publicId,
       payload,
       engine,
+      width: marked.width,
+      height: marked.height,
     });
     res.status(201).json({ image });
   } catch (error) {
