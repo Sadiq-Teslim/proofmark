@@ -13,6 +13,27 @@ const authHeader = () => {
 
 const defaultEngine = () => process.env.FPWM_IMAGE_ENGINE || 'qim-dct';
 
+const imageCapabilities = async () => {
+  try {
+    const res = await axios.get(`${baseUrl()}/v1/image/capabilities`, {
+      headers: { Authorization: authHeader() },
+      timeout: 15000,
+    });
+    return res.data;
+  } catch (_) {
+    return {
+      default_engine: defaultEngine(),
+      engines: {
+        'qim-dct': { available: true, tier: 'standard' },
+        trustmark: {
+          available: /^true$/i.test(process.env.FPWM_TRUSTMARK_ENABLED || ''),
+          tier: 'strong',
+        },
+      },
+    };
+  }
+};
+
 // Embed a payload into image bytes.
 // Returns { buffer, width, height } — dims come from the engine so they can be stored
 // and passed back as size hints at detection time.
@@ -54,4 +75,4 @@ const detectImage = async (buffer, filename, engine = defaultEngine(), candidate
   return res.data;
 };
 
-module.exports = { watermarkImage, detectImage, defaultEngine };
+module.exports = { watermarkImage, detectImage, defaultEngine, imageCapabilities };

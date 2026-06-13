@@ -13,6 +13,11 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 },
 });
 
+router.get('/capabilities', protect, async (_req, res) => {
+  const capabilities = await fpwm.imageCapabilities();
+  res.json({ capabilities });
+});
+
 // Upload an image -> get a watermarked copy back (tied to you).
 router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
@@ -22,6 +27,12 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     const original = await uploadBuffer(req.file.buffer, 'proofmark/originals', req.file.mimetype);
     const payload = await allocateUniquePayload();
     const engine = req.body.engine || fpwm.defaultEngine();
+    const capabilities = await fpwm.imageCapabilities();
+    if (engine === 'trustmark' && !capabilities.engines?.trustmark?.available) {
+      return res.status(409).json({
+        message: 'Strong protection is not available yet. Enable TrustMark in the watermark engine and pass the strong-mode benchmark before using it.',
+      });
+    }
 
     const marked = await fpwm.watermarkImage(
       req.file.buffer, req.file.originalname, payload, engine
@@ -47,11 +58,15 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 });
 
 router.get('/', protect, async (req, res) => {
-  const images = await Image.findAll({
-    where: { userId: req.user.id },
-    order: [['createdAt', 'DESC']],
-  });
-  res.json({ images });
+  try {
+    const images = await Image.findAll({
+      where: { userId: req.user.id },
+      order: [['createdAt', 'DESC']],
+    });
+    res.json({ images });
+  } catch (error) {
+    res.status(500).json({ message: 'Could not load images', error: error.message });
+  }
 });
 
 router.get('/:id', protect, async (req, res) => {
