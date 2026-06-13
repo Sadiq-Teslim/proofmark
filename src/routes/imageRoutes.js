@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const axios = require('axios');
 const { Image, Sighting } = require('../models');
 const { uploadBuffer } = require('../config/cloudinary');
 const { protect } = require('../middleware/auth');
@@ -73,6 +74,31 @@ router.get('/:id', protect, async (req, res) => {
   const image = await Image.findOne({ where: { id: req.params.id, userId: req.user.id } });
   if (!image) return res.status(404).json({ message: 'Image not found' });
   res.json({ image });
+});
+
+router.get('/:id/download', protect, async (req, res) => {
+  try {
+    const image = await Image.findOne({ where: { id: req.params.id, userId: req.user.id } });
+    if (!image) return res.status(404).json({ message: 'Image not found' });
+
+    const response = await axios.get(image.watermarkedUrl, {
+      responseType: 'arraybuffer',
+      timeout: 60000,
+      maxContentLength: 30 * 1024 * 1024,
+      maxBodyLength: 30 * 1024 * 1024,
+    });
+    const filename = `${image.title || 'proofmark-image'}-proofmark.png`
+      .replace(/[^a-z0-9._-]+/gi, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase();
+
+    res.setHeader('Content-Type', response.headers['content-type'] || 'image/png');
+    res.setHeader('Content-Length', Buffer.byteLength(response.data));
+    res.setHeader('Content-Disposition', `attachment; filename="${filename || 'proofmark-image.png'}"`);
+    return res.send(Buffer.from(response.data));
+  } catch (error) {
+    return res.status(500).json({ message: 'Download failed', error: error.message });
+  }
 });
 
 // Trigger a web scan for copies of this image now.

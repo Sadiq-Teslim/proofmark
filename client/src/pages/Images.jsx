@@ -42,6 +42,7 @@ export default function Images() {
   const [busy, setBusy] = useState(false);
   const [sightings, setSightings] = useState({});
   const [scanning, setScanning] = useState({});
+  const [downloading, setDownloading] = useState({});
   const [capabilities, setCapabilities] = useState(null);
 
   const load = async () => {
@@ -95,6 +96,32 @@ export default function Images() {
       setErr(e2.response?.data?.error || e2.response?.data?.message || 'Scan failed');
     } finally {
       setScanning((s) => ({ ...s, [id]: false }));
+    }
+  };
+
+  const downloadImage = async (img) => {
+    setErr('');
+    setDownloading((s) => ({ ...s, [img.id]: true }));
+    try {
+      const response = await api.get(`/images/${img.id}/download`, { responseType: 'blob' });
+      const url = URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      const fallback = `${img.title || 'proofmark-image'}-proofmark.png`
+        .replace(/[^a-z0-9._-]+/gi, '-')
+        .replace(/^-+|-+$/g, '')
+        .toLowerCase();
+      const disposition = response.headers['content-disposition'] || '';
+      const match = disposition.match(/filename="([^"]+)"/i);
+      link.href = url;
+      link.download = match?.[1] || fallback || 'proofmark-image.png';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (e2) {
+      setErr(e2.response?.data?.error || e2.response?.data?.message || 'Download failed');
+    } finally {
+      setDownloading((s) => ({ ...s, [img.id]: false }));
     }
   };
 
@@ -158,7 +185,9 @@ export default function Images() {
 
           <div className="mode-grid" role="radiogroup" aria-label="Protection mode">
             {protectionModes.map((mode) => {
-              const available = capabilities?.engines?.[mode.value]?.available !== false;
+              const available = mode.value === 'trustmark'
+                ? capabilities?.engines?.trustmark?.available === true
+                : capabilities?.engines?.[mode.value]?.available !== false;
               return (
               <label
                 className={`mode-card ${engine === mode.value ? 'selected' : ''} ${available ? '' : 'disabled'}`}
@@ -222,10 +251,14 @@ export default function Images() {
                 </div>
 
                 <div className="action-row">
-                  <a className="button-link" href={img.watermarkedUrl} target="_blank" rel="noreferrer">
-                    <ArrowDownToLine size={17} />
-                    <span>Download</span>
-                  </a>
+                  <button
+                    className="secondary-button"
+                    onClick={() => downloadImage(img)}
+                    disabled={downloading[img.id]}
+                  >
+                    {downloading[img.id] ? <Loader2 className="spin" size={17} /> : <ArrowDownToLine size={17} />}
+                    <span>{downloading[img.id] ? 'Downloading' : 'Download'}</span>
+                  </button>
                   <button className="secondary-button" onClick={() => scan(img.id)} disabled={scanning[img.id]}>
                     {scanning[img.id] ? <Loader2 className="spin" size={17} /> : <Radar size={17} />}
                     <span>{scanning[img.id] ? 'Scanning' : 'Track'}</span>
