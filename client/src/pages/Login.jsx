@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import { useAuth } from '../auth.jsx';
+import Logo from '../components/Logo.jsx';
 
 export default function Login() {
   const { login } = useAuth();
@@ -17,7 +18,7 @@ export default function Login() {
     try {
       const { data } = await api.post('/auth/login', { email, password });
       login(data.token, data.user);
-      navigate('/');
+      navigate('/app');
     } catch (e2) {
       setErr(e2.response?.data?.message || 'Login failed');
     } finally { setBusy(false); }
@@ -26,7 +27,8 @@ export default function Login() {
   return (
     <div className="center">
       <form className="card auth-card" onSubmit={submit}>
-        <h1>ProofMark</h1>
+        <Logo />
+        <h1>Welcome back</h1>
         <p className="muted">Sign in to watermark and trace your images.</p>
         <label>Email</label>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />

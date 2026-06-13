@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { BadgeCheck, Images, LogOut, ShieldCheck } from 'lucide-react';
+import { BadgeCheck, Images, LogOut } from 'lucide-react';
 import { useAuth } from '../auth.jsx';
+import Logo from './Logo.jsx';
 
 export default function Nav() {
   const { user, logout } = useAuth();
@@ -9,12 +10,12 @@ export default function Nav() {
 
   return (
     <nav className="nav">
-      <NavLink to="/" className="brand" aria-label="ProofMark home">
-        <span className="brand-mark"><ShieldCheck size={18} /></span>
+      <NavLink to="/app" className="brand" aria-label="ProofMark app">
+        <Logo lockup={false} size="sm" />
         <span>ProofMark</span>
       </NavLink>
       <div className="nav-links">
-        <NavLink to="/">
+        <NavLink to="/app">
           <Images size={18} />
           <span>Property</span>
         </NavLink>

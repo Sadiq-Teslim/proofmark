@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api.js';
 import { useAuth } from '../auth.jsx';
+import Logo from '../components/Logo.jsx';
 
 export default function Register() {
   const { login } = useAuth();
@@ -17,7 +18,7 @@ export default function Register() {
     try {
       const { data } = await api.post('/auth/register', form);
       login(data.token, data.user);
-      navigate('/');
+      navigate('/app');
     } catch (e2) {
       setErr(e2.response?.data?.message || 'Registration failed');
     } finally { setBusy(false); }
@@ -26,6 +27,7 @@ export default function Register() {
   return (
     <div className="center">
       <form className="card auth-card" onSubmit={submit}>
+        <Logo />
         <h1>Create account</h1>
         <label>Name</label>
         <input value={form.name} onChange={set('name')} required />
