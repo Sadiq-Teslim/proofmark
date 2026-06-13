@@ -15,8 +15,15 @@ const upload = multer({
 });
 
 router.get('/capabilities', protect, async (_req, res) => {
-  const capabilities = await fpwm.imageCapabilities();
-  res.json({ capabilities });
+  try {
+    const capabilities = await fpwm.imageCapabilities();
+    res.json({ capabilities });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Could not load watermark capabilities',
+      error: error.message,
+    });
+  }
 });
 
 // Upload an image -> get a watermarked copy back (tied to you).
@@ -32,6 +39,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     if (engine === 'trustmark' && !capabilities.engines?.trustmark?.available) {
       return res.status(409).json({
         message: 'Strong protection is not available yet. Enable TrustMark in the watermark engine and pass the strong-mode benchmark before using it.',
+        capabilities,
       });
     }
 
