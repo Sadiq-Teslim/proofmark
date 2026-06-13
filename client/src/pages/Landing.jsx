@@ -142,7 +142,7 @@ export default function Landing() {
 
       <footer className="landing-footer">
         <Logo size="sm" />
-        <p>ProofMark protects images now and gives FairPlay Africa the frame-level foundation for video next.</p>
+        <p>Protect what you share, prove what is yours, and keep a record when it appears elsewhere.</p>
         <div>
           <Link to="/login">Sign in</Link>
           <Link to={appHref}>Get started</Link>

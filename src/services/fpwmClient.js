@@ -17,12 +17,14 @@ const imageCapabilities = async () => {
   try {
     const res = await axios.get(`${baseUrl()}/v1/image/capabilities`, {
       headers: { Authorization: authHeader() },
-      timeout: 15000,
+      timeout: parseInt(process.env.FPWM_CAPABILITIES_TIMEOUT_MS || '60000', 10),
     });
-    return res.data;
-  } catch (_) {
+    return { ...res.data, source: 'engine' };
+  } catch (error) {
     return {
       default_engine: defaultEngine(),
+      source: 'fallback',
+      error: error.response?.data?.detail || error.message,
       engines: {
         'qim-dct': { available: true, tier: 'standard' },
         trustmark: {
