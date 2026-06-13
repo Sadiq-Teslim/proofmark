@@ -1295,6 +1295,63 @@ select:focus,
   font-weight: 800;
 }
 
+.info {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 135, 122, 0.22);
+  border-radius: 8px;
+  background: rgba(0, 135, 122, 0.08);
+  color: var(--teal);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.jobs-panel {
+  width: min(100%, 980px);
+  margin: -24px auto 34px;
+  display: grid;
+  gap: 12px;
+}
+
+.job-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow);
+}
+
+.job-row > span {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: #fff;
+}
+
+.job-row.error > span {
+  background: var(--danger);
+}
+
+.job-row strong {
+  display: block;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.job-row p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-weight: 760;
+  line-height: 1.45;
+}
+
 .center {
   min-height: 100vh;
   display: grid;

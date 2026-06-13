@@ -44,11 +44,14 @@ export default function Images() {
   const [scanning, setScanning] = useState({});
   const [downloading, setDownloading] = useState({});
   const [capabilities, setCapabilities] = useState(null);
+  const [protectionJobs, setProtectionJobs] = useState([]);
+  const [info, setInfo] = useState('');
 
   const load = async () => {
-    const [imageResult, capResult] = await Promise.allSettled([
+    const [imageResult, capResult, jobResult] = await Promise.allSettled([
       api.get('/images'),
       api.get('/images/capabilities'),
+      api.get('/images/jobs'),
     ]);
     if (imageResult.status === 'fulfilled') {
       setImages(imageResult.value.data.images || []);
@@ -56,9 +59,37 @@ export default function Images() {
     if (capResult.status === 'fulfilled') {
       setCapabilities(capResult.value.data.capabilities);
     }
+    if (jobResult.status === 'fulfilled') {
+      setProtectionJobs(jobResult.value.data.jobs || []);
+    }
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const active = protectionJobs.filter((job) => job.status === 'processing');
+    if (active.length === 0) return undefined;
+    const timer = window.setInterval(async () => {
+      const results = await Promise.allSettled(
+        active.map((job) => api.get(`/images/jobs/${job.id}`))
+      );
+      let completed = false;
+      setProtectionJobs((current) => current.map((job) => {
+        const result = results.find((entry) => (
+          entry.status === 'fulfilled' && entry.value.data.job.id === job.id
+        ));
+        if (!result) return job;
+        const next = result.value.data.job;
+        if (next.status === 'ready') completed = true;
+        return next;
+      }));
+      if (completed) {
+        setInfo('Strong protected image is ready.');
+        await load();
+      }
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [protectionJobs]);
 
   const totalSightings = useMemo(() => (
     Object.values(sightings).reduce((sum, list) => sum + list.length, 0)
@@ -67,17 +98,22 @@ export default function Images() {
   const upload = async (e) => {
     e.preventDefault();
     setErr('');
+    setInfo('');
     setBusy(true);
     try {
       const fd = new FormData();
       fd.append('title', title);
       fd.append('engine', engine);
       fd.append('image', file);
-      await api.post('/images', fd);
+      const response = await api.post('/images', fd);
       setTitle('');
       setEngine('qim-dct');
       setFile(null);
       e.target.reset();
+      if (response.status === 202 && response.data.job) {
+        setProtectionJobs((jobs) => [response.data.job, ...jobs]);
+        setInfo('Strong protection has started. You can stay here while ProofMark finishes it.');
+      }
       await load();
     } catch (e2) {
       setErr(e2.response?.data?.error || e2.response?.data?.message || 'Upload failed');
@@ -209,12 +245,37 @@ export default function Images() {
           </div>
 
           {err && <div className="err">{err}</div>}
+          {info && <div className="info">{info}</div>}
           <button className="primary-button" disabled={busy || !file}>
             {busy ? <Loader2 className="spin" size={18} /> : <ShieldCheck size={18} />}
-            <span>{busy ? 'Protecting image' : 'Create protected image'}</span>
+            <span>
+              {busy
+                ? engine === 'trustmark' ? 'Starting strong protection' : 'Protecting image'
+                : 'Create protected image'}
+            </span>
           </button>
         </form>
       </section>
+
+      {protectionJobs.some((job) => job.status === 'processing' || job.status === 'error') && (
+        <section className="jobs-panel" aria-label="Protection jobs">
+          {protectionJobs
+            .filter((job) => job.status === 'processing' || job.status === 'error')
+            .map((job) => (
+              <div className={`job-row ${job.status}`} key={job.id}>
+                <span>{job.status === 'processing' ? <Loader2 className="spin" size={17} /> : <ShieldCheck size={17} />}</span>
+                <div>
+                  <strong>{job.title}</strong>
+                  <p>
+                    {job.status === 'processing'
+                      ? 'Strong watermark is running in the production worker.'
+                      : job.error || 'Strong protection failed'}
+                  </p>
+                </div>
+              </div>
+            ))}
+        </section>
+      )}
 
       <section className="section-heading">
         <div>

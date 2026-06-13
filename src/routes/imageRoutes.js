@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const axios = require('axios');
-const { Image, Sighting } = require('../models');
+const { Image, ProtectionJob, Sighting } = require('../models');
 const { uploadBuffer } = require('../config/cloudinary');
 const { protect } = require('../middleware/auth');
 const fpwm = require('../services/fpwmClient');
@@ -26,6 +26,47 @@ router.get('/capabilities', protect, async (_req, res) => {
   }
 });
 
+const completeProtectionJob = async (job) => {
+  if (job.status !== 'processing') {
+    const image = job.imageId
+      ? await Image.findOne({ where: { id: job.imageId, userId: job.userId } })
+      : null;
+    return { job, image };
+  }
+
+  const status = await fpwm.imageWatermarkJobStatus(job.fpwmJobId);
+  if (status.status === 'processing') return { job, image: null };
+
+  if (status.status === 'error') {
+    job.status = 'error';
+    job.error = status.error || 'Strong protection failed';
+    await job.save();
+    return { job, image: null };
+  }
+
+  const result = status.result || {};
+  const image = await Image.create({
+    userId: job.userId,
+    title: job.title,
+    originalUrl: job.originalUrl,
+    originalPublicId: job.originalPublicId,
+    watermarkedUrl: result.watermarked_url,
+    watermarkedPublicId: result.watermarked_public_id || '',
+    payload: job.payload,
+    engine: job.engine,
+    width: result.width || null,
+    height: result.height || null,
+  });
+  job.status = 'ready';
+  job.imageId = image.id;
+  job.watermarkedUrl = image.watermarkedUrl;
+  job.watermarkedPublicId = image.watermarkedPublicId;
+  job.width = image.width;
+  job.height = image.height;
+  await job.save();
+  return { job, image };
+};
+
 // Upload an image -> get a watermarked copy back (tied to you).
 router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
@@ -41,6 +82,24 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
         message: 'Strong protection is not available yet. Enable TrustMark in the watermark engine and pass the strong-mode benchmark before using it.',
         capabilities,
       });
+    }
+
+    if (engine === 'trustmark') {
+      const engineJob = await fpwm.createWatermarkImageJob(
+        req.file.buffer, req.file.originalname, payload, engine
+      );
+      const job = await ProtectionJob.create({
+        userId: req.user.id,
+        title: req.body.title,
+        originalUrl: original.url,
+        originalPublicId: original.publicId,
+        sourceFilename: req.file.originalname || '',
+        payload,
+        engine,
+        fpwmJobId: engineJob.job_id,
+        status: 'processing',
+      });
+      return res.status(202).json({ job });
     }
 
     const marked = await fpwm.watermarkImage(
@@ -63,6 +122,30 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     res.status(201).json({ image });
   } catch (error) {
     res.status(500).json({ message: 'Watermarking failed', error: error.message });
+  }
+});
+
+router.get('/jobs', protect, async (req, res) => {
+  try {
+    const jobs = await ProtectionJob.findAll({
+      where: { userId: req.user.id },
+      order: [['createdAt', 'DESC']],
+      limit: 20,
+    });
+    res.json({ jobs });
+  } catch (error) {
+    res.status(500).json({ message: 'Could not load protection jobs', error: error.message });
+  }
+});
+
+router.get('/jobs/:id', protect, async (req, res) => {
+  try {
+    const job = await ProtectionJob.findOne({ where: { id: req.params.id, userId: req.user.id } });
+    if (!job) return res.status(404).json({ message: 'Protection job not found' });
+    const result = await completeProtectionJob(job);
+    return res.json(result);
+  } catch (error) {
+    return res.status(500).json({ message: 'Could not refresh protection job', error: error.message });
   }
 });
 

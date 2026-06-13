@@ -59,6 +59,29 @@ const watermarkImage = async (buffer, filename, payload, engine = defaultEngine(
   };
 };
 
+const createWatermarkImageJob = async (buffer, filename, payload, engine = defaultEngine()) => {
+  const form = new FormData();
+  form.append('file', buffer, { filename: filename || 'image' });
+  form.append('payload', String(payload));
+  form.append('engine', engine);
+
+  const res = await axios.post(`${baseUrl()}/v1/image/watermark/jobs`, form, {
+    headers: { Authorization: authHeader(), ...form.getHeaders() },
+    timeout: 120000,
+    maxBodyLength: Infinity,
+    maxContentLength: Infinity,
+  });
+  return res.data;
+};
+
+const imageWatermarkJobStatus = async (jobId) => {
+  const res = await axios.get(`${baseUrl()}/v1/image/watermark/jobs/${jobId}`, {
+    headers: { Authorization: authHeader() },
+    timeout: 60000,
+  });
+  return res.data;
+};
+
 // Detect a payload in image bytes; returns { marked, payload, confidence, engine }.
 // candidateSizes: [[w,h],...] hints let the engine undo platform resizes.
 const detectImage = async (buffer, filename, engine = defaultEngine(), candidateSizes = null) => {
@@ -77,4 +100,11 @@ const detectImage = async (buffer, filename, engine = defaultEngine(), candidate
   return res.data;
 };
 
-module.exports = { watermarkImage, detectImage, defaultEngine, imageCapabilities };
+module.exports = {
+  watermarkImage,
+  createWatermarkImageJob,
+  imageWatermarkJobStatus,
+  detectImage,
+  defaultEngine,
+  imageCapabilities,
+};
