@@ -1,9 +1,0 @@
-{
-    "email":  "codex-ui-test+20260614173848@example.com",
-    "token":  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYzN2Y5NTQyLWQ2YjctNDBhMi05ZDgyLTBiMjFlZjVkZjAwMCIsImlhdCI6MTc4MTQ1NTEzMSwiZXhwIjoxNzgyMDU5OTMxfQ.BDK2boZig5NUsOajiQECLL1aCQemiaAJ8dZPW-TXdNc",
-    "user":  {
-                 "id":  "f37f9542-d6b7-40a2-9d82-0b21ef5df000",
-                 "name":  "Teslim",
-                 "email":  "codex-ui-test+20260614173848@example.com"
-             }
-}
