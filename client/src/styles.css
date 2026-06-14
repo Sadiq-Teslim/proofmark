@@ -2583,7 +2583,7 @@ select:focus,
 
 .signin-form {
   width: min(100%, 650px);
-  margin-top: clamp(70px, 8.5vw, 124px);
+  margin-top: clamp(58px, 6vw, 86px);
 }
 
 .signin-form h1 {
@@ -2881,6 +2881,7 @@ select:focus,
 
 .signin-orbit {
   position: relative;
+  top: -92px;
   display: grid;
   place-items: center;
   width: min(440px, 56vw);
@@ -3000,6 +3001,7 @@ select:focus,
   }
 
   .signin-orbit {
+    top: -18px;
     width: 250px;
     height: 250px;
     margin-bottom: 44px;
@@ -3201,6 +3203,7 @@ select:focus,
   }
 
   .signin-orbit {
+    top: -10px;
     width: 180px;
     height: 180px;
     margin-bottom: 38px;
