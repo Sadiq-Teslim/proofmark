@@ -77,7 +77,7 @@ export default function Landing() {
       <header className="pm-land-nav">
         <Link to="/" className="pm-land-brand" aria-label="ProofMark home">
           <Logo tone="light" size="sm" />
-          <span>Trace your images.</span>
+          <span className="pm-land-tagline">Trace your images.</span>
         </Link>
         <nav aria-label="Landing navigation">
           <a href="#how">How it works</a>
