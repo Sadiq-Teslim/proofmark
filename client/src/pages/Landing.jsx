@@ -7,7 +7,6 @@ import {
   CircleMinus,
   CircleX,
   Fingerprint,
-  Globe2,
   Image as ImageIcon,
   Lock,
   Play,
@@ -15,7 +14,6 @@ import {
   ScanLine,
   Search,
   ShieldCheck,
-  Sparkles,
   UploadCloud,
   Zap,
 } from 'lucide-react';
@@ -122,9 +120,6 @@ export default function Landing() {
 
       <section className="pm-land-hero">
         <div className="pm-hero-copy">
-          <span className="pm-eyebrow">
-            <Sparkles size={15} /> Forensic image protection
-          </span>
           <h1>
             Prove an image is yours.
             <span className="pm-grad"> Anywhere it travels.</span>
@@ -313,8 +308,7 @@ export default function Landing() {
           <a href="#pricing">Privacy</a>
         </nav>
         <div className="pm-fairplay-mark">
-          <span><Globe2 size={24} /></span>
-          <strong>FairPlay Africa</strong>
+          <img src="/fairplay-africa.png" alt="FairPlay Africa" />
           <p>For creators. For culture. For fairness.</p>
         </div>
       </footer>
