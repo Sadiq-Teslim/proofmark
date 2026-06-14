@@ -4166,3 +4166,61 @@ select:focus,
   .pm-auth-shell { grid-template-columns: 1fr; width: min(440px, 100%); }
   .pm-auth-brand-side { display: none; }
 }
+
+/* ============ Sign up — tighter so the extra fields still fit one viewport ============ */
+.pm-auth.is-signup .pm-auth-form-side { gap: 12px; padding: clamp(22px, 2.6vw, 36px); }
+.pm-auth.is-signup .pm-auth-form { gap: 11px; }
+.pm-auth.is-signup .pm-auth-head h1 { font-size: clamp(26px, 2.9vw, 36px); }
+.pm-auth.is-signup .pm-auth-head p { font-size: 14px; }
+.pm-auth.is-signup .pm-input { min-height: 48px; }
+.pm-auth.is-signup .pm-input input { height: 48px; }
+.pm-auth.is-signup .pm-auth-submit { min-height: 50px; }
+.pm-auth.is-signup .pm-auth-google { min-height: 48px; }
+.pm-auth.is-signup .pm-auth-switch { margin-top: 4px; }
+
+.pm-input > svg.pm-neutral { color: #9fb0af; }
+
+.pm-strength { display: flex; align-items: center; gap: 10px; }
+.pm-strength > div { display: flex; gap: 5px; flex: 1; }
+.pm-strength span {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.25s ease;
+}
+.pm-strength strong { font-size: 12px; font-weight: 700; color: #9fb0af; min-width: 44px; text-align: right; }
+.pm-strength[data-score="1"] span.active { background: #ff7b75; }
+.pm-strength[data-score="1"] strong { color: #ff7b75; }
+.pm-strength[data-score="2"] span.active { background: #f3c24d; }
+.pm-strength[data-score="2"] strong { color: #f3c24d; }
+.pm-strength[data-score="3"] span.active,
+.pm-strength[data-score="4"] span.active { background: var(--pm-teal); }
+.pm-strength[data-score="3"] strong,
+.pm-strength[data-score="4"] strong { color: var(--pm-teal); }
+
+.pm-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 2px 0 0;
+  color: #9fb0af;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.pm-privacy svg { color: var(--pm-teal); flex: 0 0 auto; margin-top: 1px; }
+
+.pm-terms { margin: 6px 0 0; text-align: center; color: #8d989a; font-size: 12px; line-height: 1.4; }
+.pm-terms a { color: #aebab9; text-decoration: underline; }
+
+/* Short viewports (e.g. 1366x768): tighten so sign-up's terms line stays on-screen */
+@media (max-height: 820px) {
+  .pm-auth { padding: 12px; }
+  .pm-auth.is-signup .pm-auth-form-side { gap: 10px; padding: clamp(18px, 2.2vw, 28px); }
+  .pm-auth.is-signup .pm-auth-form { gap: 9px; }
+  .pm-auth.is-signup .pm-input { min-height: 46px; }
+  .pm-auth.is-signup .pm-input input { height: 46px; }
+  .pm-auth.is-signup .pm-auth-submit { min-height: 48px; margin-top: 2px; }
+  .pm-auth.is-signup .pm-auth-google { min-height: 46px; }
+  .pm-auth.is-signup .pm-auth-head h1 { font-size: clamp(24px, 2.6vw, 30px); }
+}
