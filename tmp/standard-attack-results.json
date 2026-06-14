@@ -1,0 +1,162 @@
+[
+    {
+        "case":  "01-original-clean.png",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "02-jpeg-q90.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "03-jpeg-q70.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "04-resize-50.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "05-resize-150.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "06-social-1080-q70.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "07-whatsapp-ish-960-q55.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "08-screenshot-canvas.jpg",
+        "http":  "200",
+        "result":  "not_found",
+        "mine":  false,
+        "payload":  null,
+        "confidence":  0,
+        "engine":  "qim-dct",
+        "message":  "No ProofMark watermark detected"
+    },
+    {
+        "case":  "09-center-crop-85.jpg",
+        "http":  "200",
+        "result":  "not_found",
+        "mine":  false,
+        "payload":  null,
+        "confidence":  0,
+        "engine":  "qim-dct",
+        "message":  "No ProofMark watermark detected"
+    },
+    {
+        "case":  "10-rotate-3deg.jpg",
+        "http":  "200",
+        "result":  "not_found",
+        "mine":  false,
+        "payload":  null,
+        "confidence":  0,
+        "engine":  "qim-dct",
+        "message":  "No ProofMark watermark detected"
+    },
+    {
+        "case":  "11-blur-0_8.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "12-caption-overlay.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "13-light-noise.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "14-contrast-125.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    },
+    {
+        "case":  "15-phone-full-screenshot.jpg",
+        "http":  "200",
+        "result":  "not_found",
+        "mine":  false,
+        "payload":  null,
+        "confidence":  0,
+        "engine":  "qim-dct",
+        "message":  "No ProofMark watermark detected"
+    },
+    {
+        "case":  "16-image-screenshot-900.jpg",
+        "http":  "200",
+        "result":  "matched",
+        "mine":  true,
+        "payload":  5,
+        "confidence":  1,
+        "engine":  "qim-dct",
+        "message":  "This image matches one of your protected ProofMark images"
+    }
+]

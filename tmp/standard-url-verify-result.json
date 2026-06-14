@@ -1,0 +1,42 @@
+{
+    "id":  "99440a32-efbe-4221-af2c-c5e9215bb03f",
+    "result":  "matched",
+    "watermarked":  true,
+    "mine":  true,
+    "detected":  {
+                     "marked":  true,
+                     "payload":  5,
+                     "confidence":  1,
+                     "engine":  "qim-dct"
+                 },
+    "message":  "This image matches one of your protected ProofMark images",
+    "evidence":  {
+                     "result":  "matched",
+                     "source":  "url",
+                     "detected":  {
+                                      "engine":  "qim-dct",
+                                      "marked":  true,
+                                      "payload":  5,
+                                      "confidence":  1
+                                  },
+                     "suspectUrl":  "https://res.cloudinary.com/dw8tqfqaj/image/upload/v1781452009/proofmark/watermarked/aqycyutjfmzhno0enfic.png",
+                     "matchedProperty":  {
+                                             "id":  "5d18e5ea-697e-4167-92cc-bde9bea91d3b",
+                                             "title":  "Standard Torture Test 20260614164609",
+                                             "engine":  "qim-dct",
+                                             "payload":  5,
+                                             "protectedAt":  "2026-06-14T15:46:49.642Z"
+                                         },
+                     "suspectFilename":  "aqycyutjfmzhno0enfic.png",
+                     "strictAttribution":  "Valid watermark payload mapped to a protected image owned by this account."
+                 },
+    "reportUrl":  "/verify/99440a32-efbe-4221-af2c-c5e9215bb03f/report",
+    "match":  {
+                  "id":  "5d18e5ea-697e-4167-92cc-bde9bea91d3b",
+                  "title":  "Standard Torture Test 20260614164609",
+                  "watermarkedUrl":  "https://res.cloudinary.com/dw8tqfqaj/image/upload/v1781452009/proofmark/watermarked/aqycyutjfmzhno0enfic.png",
+                  "payload":  5,
+                  "engine":  "qim-dct",
+                  "createdAt":  "2026-06-14T15:46:49.642Z"
+              }
+}
