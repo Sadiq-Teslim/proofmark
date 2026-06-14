@@ -2561,7 +2561,8 @@ select:focus,
 .signin-form-panel {
   display: grid;
   align-content: start;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   padding: clamp(40px, 5vw, 72px);
   background:
     radial-gradient(circle at 12% 18%, rgba(49, 221, 208, 0.1), transparent 28%),
@@ -4225,12 +4226,11 @@ select:focus,
 
 /* ============ Login: compact so it fits one viewport like sign-up (login only) ============ */
 .signin-shell:not(.signup-shell) .signin-form-panel {
-  align-content: center;
-  min-height: 0;
+  align-content: start;
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
   gap: clamp(16px, 2.4vh, 26px);
-  padding: clamp(24px, 4vh, 52px) clamp(28px, 4vw, 64px);
+  padding: clamp(28px, 4vh, 52px) clamp(28px, 4vw, 64px);
 }
 .signin-shell:not(.signup-shell) .signin-form { width: min(100%, 440px); margin-top: 0; }
 .signin-shell:not(.signup-shell) .signin-form h1 {

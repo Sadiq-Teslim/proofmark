@@ -152,7 +152,7 @@ export default function Register() {
 
           <div className="signin-divider signup-divider"><span>or</span></div>
 
-          <button className="signin-google signup-google" type="button">
+          <button className="signin-google signup-google" type="button" disabled title="Coming soon">
             <GoogleIcon />
             <strong>Continue with Google</strong>
           </button>
