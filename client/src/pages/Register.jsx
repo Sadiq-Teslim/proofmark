@@ -39,7 +39,7 @@ export default function Register() {
         <div className="auth-proof-card">
           <span>Ready in minutes</span>
           <strong>Upload. Protect. Verify.</strong>
-          <small>Standard and Strong watermark modes</small>
+          <small>V1 protection for everyday sharing</small>
         </div>
       </section>
 

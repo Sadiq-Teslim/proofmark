@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { BadgeCheck, Images, LogOut } from 'lucide-react';
+import { BadgeCheck, GalleryVerticalEnd, Images, LogOut } from 'lucide-react';
 import { useAuth } from '../auth.jsx';
 import Logo from './Logo.jsx';
 
@@ -17,12 +17,16 @@ export default function Nav() {
       <div className="nav-links">
         <NavLink to="/app">
           <Images size={18} />
-          <span>Property</span>
+          <span>Protect</span>
         </NavLink>
         <NavLink to="/verify">
           <BadgeCheck size={18} />
           <span>Verify</span>
         </NavLink>
+        <a href="/app#properties">
+          <GalleryVerticalEnd size={18} />
+          <span>Properties</span>
+        </a>
       </div>
       <div className="nav-user">
         <span>{user?.name}</span>

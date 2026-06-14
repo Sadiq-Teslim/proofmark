@@ -3,28 +3,33 @@ import {
   ArrowDownToLine,
   BadgeCheck,
   Clock3,
+  Copy,
   ExternalLink,
   FileImage,
   Globe2,
   Loader2,
   Radar,
+  SearchCheck,
   ShieldCheck,
   Sparkles,
   UploadCloud,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import api from '../api.js';
 
-const protectionModes = [
-  {
-    label: 'Standard',
-    value: 'qim-dct',
-    detail: 'Fast traceable image for everyday sharing',
-  },
-  {
-    label: 'Strong',
-    value: 'trustmark',
-    detail: 'Harder watermark for higher-risk public posts',
-  },
+const survivalCards = [
+  ['JPEG compression', 'Passed'],
+  ['Social re-encode', 'Passed'],
+  ['Resizing', 'Passed'],
+  ['WhatsApp-style compression', 'Passed'],
+  ['Mild blur, noise, contrast', 'Passed'],
+  ['Caption overlays', 'Often recoverable'],
+];
+
+const launchSteps = [
+  ['Upload', 'Choose the image before it leaves your hands.'],
+  ['Download', 'Use the protected version anywhere you publish or send it.'],
+  ['Verify', 'Upload a copy later and ProofMark traces it back when the mark survives.'],
 ];
 
 const formatDate = (date) => new Intl.DateTimeFormat(undefined, {
@@ -36,60 +41,25 @@ const formatDate = (date) => new Intl.DateTimeFormat(undefined, {
 export default function Images() {
   const [images, setImages] = useState([]);
   const [title, setTitle] = useState('');
-  const [engine, setEngine] = useState('qim-dct');
   const [file, setFile] = useState(null);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [sightings, setSightings] = useState({});
   const [scanning, setScanning] = useState({});
   const [downloading, setDownloading] = useState({});
-  const [capabilities, setCapabilities] = useState(null);
-  const [protectionJobs, setProtectionJobs] = useState([]);
+  const [copied, setCopied] = useState('');
   const [info, setInfo] = useState('');
 
   const load = async () => {
-    const [imageResult, capResult, jobResult] = await Promise.allSettled([
+    const [imageResult] = await Promise.allSettled([
       api.get('/images'),
-      api.get('/images/capabilities'),
-      api.get('/images/jobs'),
     ]);
     if (imageResult.status === 'fulfilled') {
       setImages(imageResult.value.data.images || []);
     }
-    if (capResult.status === 'fulfilled') {
-      setCapabilities(capResult.value.data.capabilities);
-    }
-    if (jobResult.status === 'fulfilled') {
-      setProtectionJobs(jobResult.value.data.jobs || []);
-    }
   };
 
   useEffect(() => { load(); }, []);
-
-  useEffect(() => {
-    const active = protectionJobs.filter((job) => job.status === 'processing');
-    if (active.length === 0) return undefined;
-    const timer = window.setInterval(async () => {
-      const results = await Promise.allSettled(
-        active.map((job) => api.get(`/images/jobs/${job.id}`))
-      );
-      let completed = false;
-      setProtectionJobs((current) => current.map((job) => {
-        const result = results.find((entry) => (
-          entry.status === 'fulfilled' && entry.value.data.job.id === job.id
-        ));
-        if (!result) return job;
-        const next = result.value.data.job;
-        if (next.status === 'ready') completed = true;
-        return next;
-      }));
-      if (completed) {
-        setInfo('Strong protected image is ready.');
-        await load();
-      }
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [protectionJobs]);
 
   const totalSightings = useMemo(() => (
     Object.values(sightings).reduce((sum, list) => sum + list.length, 0)
@@ -103,17 +73,13 @@ export default function Images() {
     try {
       const fd = new FormData();
       fd.append('title', title);
-      fd.append('engine', engine);
+      fd.append('engine', 'qim-dct');
       fd.append('image', file);
-      const response = await api.post('/images', fd);
+      await api.post('/images', fd);
       setTitle('');
-      setEngine('qim-dct');
       setFile(null);
       e.target.reset();
-      if (response.status === 202 && response.data.job) {
-        setProtectionJobs((jobs) => [response.data.job, ...jobs]);
-        setInfo('Strong protection has started. You can stay here while ProofMark finishes it.');
-      }
+      setInfo('Protected image created. Download it from your properties and use that version when sharing.');
       await load();
     } catch (e2) {
       setErr(e2.response?.data?.error || e2.response?.data?.message || 'Upload failed');
@@ -161,15 +127,26 @@ export default function Images() {
     }
   };
 
+  const copyProtectedUrl = async (img) => {
+    setErr('');
+    try {
+      await navigator.clipboard.writeText(img.watermarkedUrl);
+      setCopied(img.id);
+      window.setTimeout(() => setCopied(''), 1600);
+    } catch {
+      setErr('Could not copy protected URL');
+    }
+  };
+
   return (
-    <main className="page-stack">
-      <section className="hero-grid">
+    <main className="page-stack v1-dashboard">
+      <section className="v1-hero">
         <div className="hero-copy">
-          <span className="eyebrow"><Sparkles size={16} /> Image protection first</span>
-          <h1>Make every picture you share traceable.</h1>
+          <span className="eyebrow"><Sparkles size={16} /> ProofMark V1</span>
+          <h1>Protect images before you share them.</h1>
           <p>
-            Pass an image through ProofMark before it leaves your hands. The protected version
-            can be shared anywhere, then verified and tracked back to your property.
+            ProofMark creates a traceable version of your image that can survive common
+            reposting, compression, resizing, and re-uploads.
           </p>
           <div className="hero-stats" aria-label="ProofMark property summary">
             <div>
@@ -181,8 +158,8 @@ export default function Images() {
               <span>Sightings</span>
             </div>
             <div>
-              <strong>{images.filter((img) => img.engine === 'trustmark').length}</strong>
-              <span>Strong marks</span>
+              <strong>V1</strong>
+              <span>Live protection</span>
             </div>
           </div>
         </div>
@@ -192,7 +169,7 @@ export default function Images() {
             <span className="panel-icon"><UploadCloud size={20} /></span>
             <div>
               <h2>Protect a new image</h2>
-              <p>Generate the version you will publish or send.</p>
+              <p>Generate the exact version you should publish, send, or post.</p>
             </div>
           </div>
 
@@ -219,65 +196,56 @@ export default function Images() {
             required
           />
 
-          <div className="mode-grid" role="radiogroup" aria-label="Protection mode">
-            {protectionModes.map((mode) => {
-              const available = mode.value === 'trustmark'
-                ? capabilities?.engines?.trustmark?.available === true
-                : capabilities?.engines?.[mode.value]?.available !== false;
-              return (
-              <label
-                className={`mode-card ${engine === mode.value ? 'selected' : ''} ${available ? '' : 'disabled'}`}
-                key={mode.value}
-              >
-                <input
-                  type="radio"
-                  name="engine"
-                  value={mode.value}
-                  checked={engine === mode.value}
-                  disabled={!available}
-                  onChange={(e) => setEngine(e.target.value)}
-                />
-                <strong>{mode.label}</strong>
-                <span>{available ? mode.detail : 'Available after TrustMark passes production benchmark'}</span>
-              </label>
-              );
-            })}
+          <div className="protection-badge" aria-label="Protection mode">
+            <ShieldCheck size={18} />
+            <div>
+              <strong>ProofMark Protection</strong>
+              <span>Optimized for common sharing, compression, resizing, and reposting.</span>
+            </div>
           </div>
 
           {err && <div className="err">{err}</div>}
           {info && <div className="info">{info}</div>}
           <button className="primary-button" disabled={busy || !file}>
             {busy ? <Loader2 className="spin" size={18} /> : <ShieldCheck size={18} />}
-            <span>
-              {busy
-                ? engine === 'trustmark' ? 'Starting strong protection' : 'Protecting image'
-                : 'Create protected image'}
-            </span>
+            <span>{busy ? 'Protecting image' : 'Create protected image'}</span>
           </button>
         </form>
       </section>
 
-      {protectionJobs.some((job) => job.status === 'processing' || job.status === 'error') && (
-        <section className="jobs-panel" aria-label="Protection jobs">
-          {protectionJobs
-            .filter((job) => job.status === 'processing' || job.status === 'error')
-            .map((job) => (
-              <div className={`job-row ${job.status}`} key={job.id}>
-                <span>{job.status === 'processing' ? <Loader2 className="spin" size={17} /> : <ShieldCheck size={17} />}</span>
-                <div>
-                  <strong>{job.title}</strong>
-                  <p>
-                    {job.status === 'processing'
-                      ? 'Strong watermark is running in the production worker.'
-                      : job.error || 'Strong protection failed'}
-                  </p>
-                </div>
-              </div>
-            ))}
-        </section>
-      )}
+      <section className="v1-next-steps" aria-label="How ProofMark works">
+        {launchSteps.map(([titleText, body], index) => (
+          <article key={titleText}>
+            <span>{index + 1}</span>
+            <h3>{titleText}</h3>
+            <p>{body}</p>
+          </article>
+        ))}
+      </section>
 
-      <section className="section-heading">
+      <section className="v1-survival" aria-label="What ProofMark V1 survives">
+        <div className="section-heading compact">
+          <div>
+            <span className="eyebrow"><ShieldCheck size={16} /> What V1 survives</span>
+            <h2>Built for everyday reposting abuse.</h2>
+          </div>
+        </div>
+        <div className="survival-grid">
+          {survivalCards.map(([label, status]) => (
+            <article key={label}>
+              <BadgeCheck size={18} />
+              <strong>{label}</strong>
+              <span>{status}</span>
+            </article>
+          ))}
+        </div>
+        <p className="launch-note">
+          V1 is optimized for common sharing and reposting transformations. Cropping,
+          rotation, and framed screenshots are advanced cases planned for future protection.
+        </p>
+      </section>
+
+      <section className="section-heading" id="properties">
         <div>
           <span className="eyebrow"><Globe2 size={16} /> Property</span>
           <h2>Your protected images</h2>
@@ -285,10 +253,13 @@ export default function Images() {
       </section>
 
       {images.length === 0 ? (
-        <div className="empty-state">
+        <div className="empty-state launch-empty">
           <FileImage size={34} />
-          <h3>No protected images yet</h3>
-          <p>Your first ProofMark image will appear here with download, verification, and tracking tools.</p>
+          <h3>Create your first protected image</h3>
+          <p>Upload an image, download the protected copy, then verify reposted copies from this dashboard.</p>
+          <div className="empty-steps">
+            {launchSteps.map(([titleText]) => <span key={titleText}>{titleText}</span>)}
+          </div>
         </div>
       ) : (
         <div className="property-grid">
@@ -303,7 +274,7 @@ export default function Images() {
                     <h3>{img.title}</h3>
                     <p><Clock3 size={14} /> Protected {formatDate(img.createdAt)}</p>
                   </div>
-                  <span className="status-pill">{img.engine === 'trustmark' ? 'Strong' : 'Standard'}</span>
+                  <span className="status-pill">Protected</span>
                 </div>
 
                 <div className="metadata-row">
@@ -320,9 +291,17 @@ export default function Images() {
                     {downloading[img.id] ? <Loader2 className="spin" size={17} /> : <ArrowDownToLine size={17} />}
                     <span>{downloading[img.id] ? 'Downloading' : 'Download'}</span>
                   </button>
+                  <Link className="secondary-button" to="/verify">
+                    <SearchCheck size={17} />
+                    <span>Verify</span>
+                  </Link>
                   <button className="secondary-button" onClick={() => scan(img.id)} disabled={scanning[img.id]}>
                     {scanning[img.id] ? <Loader2 className="spin" size={17} /> : <Radar size={17} />}
                     <span>{scanning[img.id] ? 'Scanning' : 'Track'}</span>
+                  </button>
+                  <button className="secondary-button" onClick={() => copyProtectedUrl(img)}>
+                    <Copy size={17} />
+                    <span>{copied === img.id ? 'Copied' : 'Copy URL'}</span>
                   </button>
                 </div>
 

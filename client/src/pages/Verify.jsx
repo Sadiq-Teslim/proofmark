@@ -9,6 +9,7 @@ import {
   History,
   Link as LinkIcon,
   Loader2,
+  SearchCheck,
   ShieldAlert,
   ShieldCheck,
   UploadCloud,
@@ -25,17 +26,17 @@ const confidenceText = (value) => {
 const resultCopy = {
   matched: {
     icon: BadgeCheck,
-    title: 'ProofMark match confirmed',
+    title: 'Matched your property',
     tone: 'success',
   },
   unknown_owner: {
     icon: ShieldAlert,
-    title: 'ProofMark watermark detected',
+    title: 'ProofMark detected, but not yours',
     tone: 'warning',
   },
   not_found: {
     icon: AlertCircle,
-    title: 'No ProofMark watermark found',
+    title: 'No ProofMark found',
     tone: 'neutral',
   },
   invalid: {
@@ -115,13 +116,20 @@ export default function Verify() {
       <section className="verify-hero">
         <div>
           <span className="eyebrow"><Fingerprint size={16} /> Verification</span>
-          <h1>Check whether a picture came from your ProofMark property.</h1>
+          <h1>Verify a copied image against your properties.</h1>
           <p>
-            Upload a suspicious copy and ProofMark will look for a valid watermark, match it
-            against your protected images, and return the evidence.
+            Upload a suspect image or paste a public image URL. ProofMark checks for a valid
+            watermark, matches it to your protected images, and prepares evidence when it belongs to you.
           </p>
         </div>
         <form className="verify-panel" onSubmit={verify}>
+          <div className="panel-heading">
+            <span className="panel-icon"><SearchCheck size={20} /></span>
+            <div>
+              <h2>Check a copy</h2>
+              <p>Use the file you found online, in chat, or from a repost.</p>
+            </div>
+          </div>
           <div className="segmented-control" aria-label="Verification method">
             <button
               type="button"
@@ -169,8 +177,8 @@ export default function Verify() {
                 required={method === 'url'}
               />
               <p className="helper-text">
-                URL verification stores the check as evidence and creates a sighting when it
-                matches one of your protected images.
+                URL checks store evidence and create a confirmed sighting when the protected
+                image is matched.
               </p>
             </>
           )}
