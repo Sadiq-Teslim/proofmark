@@ -2529,12 +2529,10 @@ select:focus,
   --signin-teal: #31ddd0;
   --signin-teal-strong: #4df2e5;
   --signin-danger: #ff4e47;
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
-  grid-template-columns: minmax(480px, 0.96fr) minmax(520px, 1.04fr);
+  grid-template-columns: 1.02fr 0.98fr;
   overflow: hidden;
-  border: 1px solid var(--signin-line);
-  border-radius: 15px;
   background: var(--signin-bg);
   color: #fff;
   font-family: var(--font-geist);
@@ -4224,3 +4222,34 @@ select:focus,
   .pm-auth.is-signup .pm-auth-google { min-height: 46px; }
   .pm-auth.is-signup .pm-auth-head h1 { font-size: clamp(24px, 2.6vw, 30px); }
 }
+
+/* ============ Login: compact so it fits one viewport like sign-up (login only) ============ */
+.signin-shell:not(.signup-shell) .signin-form-panel {
+  align-content: center;
+  min-height: 0;
+  height: 100vh;
+  overflow: hidden;
+  gap: clamp(16px, 2.4vh, 26px);
+  padding: clamp(24px, 4vh, 52px) clamp(28px, 4vw, 64px);
+}
+.signin-shell:not(.signup-shell) .signin-form { width: min(100%, 440px); margin-top: 0; }
+.signin-shell:not(.signup-shell) .signin-form h1 {
+  font-size: clamp(30px, 3.2vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-weight: 850;
+}
+.signin-shell:not(.signup-shell) .signin-form > p { margin: 10px 0 22px; font-size: 15px; }
+.signin-shell:not(.signup-shell) .signin-form label,
+.signin-shell:not(.signup-shell) .signin-label-row label { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+.signin-shell:not(.signup-shell) .signin-label-row { margin-top: 16px; }
+.signin-shell:not(.signup-shell) .signin-label-row button { font-size: 13px; }
+.signin-shell:not(.signup-shell) .signin-input { min-height: 50px; border-radius: 11px; }
+.signin-shell:not(.signup-shell) .signin-input input { min-height: 48px; padding: 0 46px 0 16px; font-size: 15px; }
+.signin-shell:not(.signup-shell) .signin-field-error,
+.signin-shell:not(.signup-shell) .signin-server-error { margin-top: 7px; font-size: 13px; }
+.signin-shell:not(.signup-shell) .signin-submit,
+.signin-shell:not(.signup-shell) .signin-google { min-height: 52px; font-size: 15px; }
+.signin-shell:not(.signup-shell) .signin-submit { margin-top: 18px; gap: 9px; }
+.signin-shell:not(.signup-shell) .signin-divider { margin: 18px 0; gap: 14px; font-size: 13px; }
+.signin-shell:not(.signup-shell) .signin-switch { margin: 18px 0 0; font-size: 14px; }

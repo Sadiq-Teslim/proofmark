@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import api from '../api.js';
 import { useAuth } from '../auth.jsx';
-import GoogleIcon from '../components/GoogleIcon.jsx';
 import Logo from '../components/Logo.jsx';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -109,7 +108,7 @@ export default function Login() {
           <div className="signin-divider"><span>or</span></div>
 
           <button className="signin-google" type="button">
-            <GoogleIcon />
+            <span aria-hidden="true">G</span>
             <strong>Continue with Google</strong>
           </button>
 
