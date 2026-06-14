@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap");
+
 :root {
   --pm-black: #050505;
   --pm-white: #ffffff;
@@ -20,6 +22,7 @@
   --radius-lg: 16px;
   --space-page: clamp(18px, 5vw, 72px);
   --font-display: system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-geist: "Geist", system-ui, "Segoe UI", Roboto, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -616,7 +619,7 @@ button:disabled { cursor: default; opacity: 0.62; }
   padding: 0 clamp(16px, 3vw, 40px) 28px;
   background: var(--pm-dark);
   color: #f6fbfa;
-  font-family: var(--font-display);
+  font-family: var(--font-geist);
 }
 
 .pm-land-nav {
