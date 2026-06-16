@@ -161,6 +161,21 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+// All sightings for the user across every property (powers Tracking + Overview).
+router.get('/sightings', protect, async (req, res) => {
+  try {
+    const sightings = await Sighting.findAll({
+      where: { userId: req.user.id },
+      include: [{ model: Image, as: 'image', attributes: ['id', 'title', 'watermarkedUrl', 'payload'] }],
+      order: [['confirmed', 'DESC'], ['createdAt', 'DESC']],
+      limit: 200,
+    });
+    res.json({ sightings });
+  } catch (error) {
+    res.status(500).json({ message: 'Could not load sightings', error: error.message });
+  }
+});
+
 router.get('/:id', protect, async (req, res) => {
   const image = await Image.findOne({ where: { id: req.params.id, userId: req.user.id } });
   if (!image) return res.status(404).json({ message: 'Image not found' });

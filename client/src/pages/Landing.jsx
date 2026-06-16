@@ -109,7 +109,7 @@ export default function Landing() {
         <nav aria-label="Landing navigation">
           <a href="#how">How it works</a>
           <a href="#survives">Survives</a>
-          <Link to={token ? '/verify' : '/login'}>Verify</Link>
+          <Link to={token ? '/app/verify' : '/login'}>Verify</Link>
           <a href="#pricing">Pricing</a>
         </nav>
         <div className="pm-land-actions">
@@ -133,7 +133,7 @@ export default function Landing() {
               Protect your first image
               <ArrowRight size={18} />
             </Link>
-            <Link className="pm-land-secondary" to={token ? '/verify' : '/login'}>
+            <Link className="pm-land-secondary" to={token ? '/app/verify' : '/login'}>
               <Play size={16} />
               <span>See verification</span>
             </Link>
@@ -293,7 +293,7 @@ export default function Landing() {
           <strong>Product</strong>
           <a href="#how">How it works</a>
           <a href="#survives">Survives</a>
-          <Link to={token ? '/verify' : '/login'}>Verify</Link>
+          <Link to={token ? '/app/verify' : '/login'}>Verify</Link>
         </nav>
         <nav>
           <strong>Resources</strong>
