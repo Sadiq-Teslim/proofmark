@@ -7,7 +7,7 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# SPA fallback so client-side routes (/trace, /issue, …) don't 404 on refresh.
+# SPA fallback so client-side routes do not 404 on refresh.
 [[redirects]]
   from = "/*"
   to = "/index.html"

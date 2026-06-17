@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ProofMark">
+  <rect width="64" height="64" rx="14" fill="#020708"/>
+  <path d="M32 9.5 49 15v15.2c0 11.7-6.6 19.2-17 23.6-10.4-4.4-17-12-17-23.6V15l17-5.5Z" fill="none" stroke="#31ddd0" stroke-width="3.2" stroke-linejoin="round"/>
+  <path d="m24.3 32.2 5.1 5 10.4-11.4" fill="none" stroke="#31ddd0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M21.5 20h6.4M36.1 44h6.4M44 21.5v6.4M20 36.1v6.4" fill="none" stroke="#87fff5" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './auth.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
+import SeoMeta from './components/SeoMeta.jsx';
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
@@ -20,23 +21,26 @@ function RequireAuth({ children }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+    <>
+      <SeoMeta />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-      <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
-        <Route index element={<Overview />} />
-        <Route path="protect" element={<Protect />} />
-        <Route path="verify" element={<Verify />} />
-        <Route path="tracking" element={<Tracking />} />
-        <Route path="properties" element={<Properties />} />
-        <Route path="properties/:id" element={<PropertyDetail />} />
-        <Route path="evidence" element={<Evidence />} />
-        <Route path="settings" element={<Settings />} />
-      </Route>
+        <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
+          <Route index element={<Overview />} />
+          <Route path="protect" element={<Protect />} />
+          <Route path="verify" element={<Verify />} />
+          <Route path="tracking" element={<Tracking />} />
+          <Route path="properties" element={<Properties />} />
+          <Route path="properties/:id" element={<PropertyDetail />} />
+          <Route path="evidence" element={<Evidence />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }

@@ -36,7 +36,7 @@ const pillars = [
     icon: ShieldCheck,
     title: 'Protect',
     lead: 'Turn every image into traceable property.',
-    body: 'Embed a unique forensic signature that proves ownership — without changing how your image looks.',
+    body: 'Embed a unique forensic signature that proves ownership - without changing how your image looks.',
   },
   {
     icon: Search,
@@ -252,7 +252,7 @@ export default function Landing() {
 
       <Reveal className="pm-dark-card pm-outcomes">
         <h2>Verification you can trust</h2>
-        <p>We only claim ownership on a real forensic match — never on a visual guess.</p>
+        <p>We only claim ownership on a real forensic match - never on a visual guess.</p>
         <div className="pm-outcome-grid">
           {outcomes.map((item, i) => {
             const Icon = item.icon;
@@ -287,7 +287,7 @@ export default function Landing() {
         <div>
           <Logo tone="light" size="sm" />
           <p>Trace your images.</p>
-          <small>© 2026 ProofMark.</small>
+          <small>(c) 2026 ProofMark.</small>
         </div>
         <nav>
           <strong>Product</strong>
