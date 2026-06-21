@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronDown, LogOut, Menu, Plus, Search } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, Menu, Search } from 'lucide-react';
 import Logo from '../Logo.jsx';
 import { useAuth } from '../../auth.jsx';
 
@@ -49,7 +49,6 @@ export default function Topbar({ title, onMenu }) {
       </form>
 
       <button className="app-primary-btn app-topbar-cta" onClick={() => navigate('/app/protect')}>
-        <Plus size={16} />
         <span>Protect image</span>
       </button>
 
