@@ -43,7 +43,7 @@ export default function Topbar({ title, onMenu }) {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search properties, payloads, sightings…"
+          placeholder="Search properties, payloads, sightings..."
           aria-label="Search"
         />
       </form>

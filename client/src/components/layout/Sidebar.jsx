@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LogOut, X } from 'lucide-react';
+import { LogOut, PanelLeftOpen, X } from 'lucide-react';
 import Logo from '../Logo.jsx';
 import { useAuth } from '../../auth.jsx';
 import { navItems } from './navItems.js';
@@ -13,7 +13,7 @@ const initialsOf = (name) =>
     .join('')
     .toUpperCase();
 
-export default function Sidebar({ open, onClose }) {
+export default function Sidebar({ open, collapsed, onClose, onToggleCollapse }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -23,11 +23,19 @@ export default function Sidebar({ open, onClose }) {
   };
 
   return (
-    <aside className={`app-sidebar ${open ? 'is-open' : ''}`}>
+    <aside className={`app-sidebar ${open ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`}>
       <div className="app-sidebar-head">
-        <NavLink to="/app" className="app-sidebar-brand" onClick={onClose}>
+        <NavLink to="/app" className="app-sidebar-brand" onClick={onClose} title="ProofMark">
           <Logo tone="light" size="sm" />
         </NavLink>
+        <button
+          className="app-icon-btn app-sidebar-toggle"
+          onClick={onToggleCollapse}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <PanelLeftOpen size={20} /> : <X size={20} />}
+        </button>
         <button className="app-icon-btn app-drawer-close" onClick={onClose} aria-label="Close menu">
           <X size={20} />
         </button>
@@ -42,6 +50,7 @@ export default function Sidebar({ open, onClose }) {
               to={item.to}
               end={item.end}
               onClick={onClose}
+              title={collapsed ? item.label : undefined}
               className={({ isActive }) => `app-nav-link ${isActive ? 'active' : ''}`}
             >
               <Icon size={18} />

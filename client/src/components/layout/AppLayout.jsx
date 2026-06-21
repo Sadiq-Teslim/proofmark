@@ -13,6 +13,7 @@ const mobileTabs = [
 
 export default function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { pathname } = useLocation();
   const title = titleForPath(pathname);
 
@@ -23,8 +24,13 @@ export default function AppLayout() {
   }, [pathname]);
 
   return (
-    <div className="app-shell">
-      <Sidebar open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+    <div className={`app-shell ${sidebarCollapsed ? 'is-sidebar-collapsed' : ''}`}>
+      <Sidebar
+        open={drawerOpen}
+        collapsed={sidebarCollapsed}
+        onClose={() => setDrawerOpen(false)}
+        onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
+      />
       <div
         className={`app-scrim ${drawerOpen ? 'is-on' : ''}`}
         onClick={() => setDrawerOpen(false)}
