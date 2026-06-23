@@ -7,16 +7,38 @@ cloudinary.config({
   secure: true,
 });
 
-// Upload an in-memory image buffer; returns { url, publicId }.
-const uploadBuffer = async (buffer, folder, mime = 'image/png') => {
+// Upload an in-memory asset buffer; returns { url, publicId, width, height, duration }.
+const uploadBuffer = async (buffer, folder, mime = 'image/png', resourceType = 'image') => {
   const dataUri = `data:${mime};base64,${buffer.toString('base64')}`;
   const result = await cloudinary.uploader.upload(dataUri, {
     folder,
-    resource_type: 'image',
+    resource_type: resourceType,
     unique_filename: true,
     overwrite: false,
   });
-  return { url: result.secure_url, publicId: result.public_id };
+  return {
+    url: result.secure_url,
+    publicId: result.public_id,
+    width: result.width || null,
+    height: result.height || null,
+    duration: result.duration || null,
+  };
 };
 
-module.exports = { cloudinary, uploadBuffer };
+const uploadFile = async (filePath, folder, resourceType = 'video') => {
+  const result = await cloudinary.uploader.upload_large(filePath, {
+    folder,
+    resource_type: resourceType,
+    unique_filename: true,
+    overwrite: false,
+  });
+  return {
+    url: result.secure_url,
+    publicId: result.public_id,
+    width: result.width || null,
+    height: result.height || null,
+    duration: result.duration || null,
+  };
+};
+
+module.exports = { cloudinary, uploadBuffer, uploadFile };

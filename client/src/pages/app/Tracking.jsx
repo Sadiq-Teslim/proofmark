@@ -1,24 +1,31 @@
 import { useEffect, useState } from 'react';
-import { ExternalLink, Radar, ScanSearch, ShieldCheck } from 'lucide-react';
+import {
+  ExternalLink, FileVideo, ImagePlus, Radar, ScanSearch, ShieldCheck,
+} from 'lucide-react';
 import api from '../../api.js';
 import { EmptyState, Spinner, formatDate } from '../../components/ui/widgets.jsx';
 
 export default function Tracking() {
   const [sightings, setSightings] = useState([]);
+  const [videoSightings, setVideoSightings] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scanId, setScanId] = useState('');
   const [scanning, setScanning] = useState(false);
   const [url, setUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [checking, setChecking] = useState(false);
+  const [checkingVideo, setCheckingVideo] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
 
   const load = () => Promise.allSettled([
     api.get('/images/sightings'),
+    api.get('/videos/sightings'),
     api.get('/images'),
-  ]).then(([sig, img]) => {
+  ]).then(([sig, videoSig, img]) => {
     if (sig.status === 'fulfilled') setSightings(sig.value.data.sightings || []);
+    if (videoSig.status === 'fulfilled') setVideoSightings(videoSig.value.data.sightings || []);
     if (img.status === 'fulfilled') setImages(img.value.data.images || []);
     setLoading(false);
   });
@@ -54,7 +61,39 @@ export default function Tracking() {
     }
   };
 
-  const confirmed = sightings.filter((s) => s.confirmed).length;
+  const pollVideoJob = async (jobId) => {
+    for (let i = 0; i < 120; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      // eslint-disable-next-line no-await-in-loop
+      const { data } = await api.get(`/verify/video/jobs/${jobId}`);
+      if (data.verification) return data.verification;
+      if (data.job?.status === 'error') throw new Error(data.job.error || 'Video check failed');
+    }
+    throw new Error('Video check is still processing. Check evidence shortly.');
+  };
+
+  const checkVideoUrl = async (e) => {
+    e.preventDefault();
+    setCheckingVideo(true); setErr(''); setMsg('');
+    try {
+      const { data } = await api.post('/verify/video/url', { url: videoUrl });
+      const verification = await pollVideoJob(data.job.id);
+      setMsg(verification.message || 'Video checked.');
+      setVideoUrl('');
+      await load();
+    } catch (e2) {
+      setErr(e2.response?.data?.error || e2.response?.data?.message || e2.message || 'Video check failed');
+    } finally {
+      setCheckingVideo(false);
+    }
+  };
+
+  const allSightings = [
+    ...sightings.map((item) => ({ ...item, kind: 'image' })),
+    ...videoSightings.map((item) => ({ ...item, kind: 'video' })),
+  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const confirmed = allSightings.filter((s) => s.confirmed).length;
 
   if (loading) return <div className="app-loading"><Spinner size={26} /></div>;
 
@@ -68,7 +107,7 @@ export default function Tracking() {
       <div className="app-stat-row track-stats">
         <div className="app-card app-stat">
           <span className="app-stat-icon"><Radar size={18} /></span>
-          <strong>{sightings.length}</strong><span className="app-muted">Total sightings</span>
+          <strong>{allSightings.length}</strong><span className="app-muted">Total sightings</span>
         </div>
         <div className="app-card app-stat">
           <span className="app-stat-icon"><ShieldCheck size={18} /></span>
@@ -76,7 +115,7 @@ export default function Tracking() {
         </div>
         <div className="app-card app-stat">
           <span className="app-stat-icon"><ScanSearch size={18} /></span>
-          <strong>{sightings.length - confirmed}</strong><span className="app-muted">Visual-only</span>
+          <strong>{allSightings.length - confirmed}</strong><span className="app-muted">Needs confirmation</span>
         </div>
       </div>
 
@@ -112,6 +151,24 @@ export default function Tracking() {
             </button>
           </div>
         </form>
+
+        <form className="app-card track-tool" onSubmit={checkVideoUrl}>
+          <h3>Check a direct video URL</h3>
+          <p className="app-muted">Runs FPWM video detection and logs a sighting when the payload is yours.</p>
+          <div className="track-tool-row">
+            <input
+              className="app-input"
+              type="url"
+              placeholder="https://example.com/suspect-video.mp4"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              required
+            />
+            <button className="app-primary-btn" disabled={!videoUrl || checkingVideo}>
+              {checkingVideo ? <Spinner size={15} /> : <FileVideo size={15} />}<span>Check</span>
+            </button>
+          </div>
+        </form>
       </div>
 
       {msg && <div className="app-note">{msg}</div>}
@@ -119,24 +176,28 @@ export default function Tracking() {
 
       <section className="app-card">
         <div className="app-card-head"><h3>Sightings</h3></div>
-        {sightings.length === 0 ? (
+        {allSightings.length === 0 ? (
           <EmptyState icon={Radar} title="No copies found yet">
-            Scan a property or check a URL to start tracking where your images appear.
+            Scan a property or check a URL to start tracking where your media appears.
           </EmptyState>
         ) : (
           <div className="app-cards-list">
-            {sightings.map((s) => (
+            {allSightings.map((s) => (
               <div className="track-sighting" key={s.id}>
                 <div className="track-sighting-main">
                   <span className={`app-pill ${s.confirmed ? 'success' : 'neutral'}`}>
                     {s.confirmed ? 'Watermark confirmed' : 'Visual match'}
+                  </span>
+                  <span className="app-pill neutral">
+                    {s.kind === 'video' ? <FileVideo size={12} /> : <ImagePlus size={12} />}
+                    {s.kind}
                   </span>
                   <a className="track-sighting-url" href={s.pageUrl} target="_blank" rel="noreferrer">
                     {s.pageUrl} <ExternalLink size={13} />
                   </a>
                 </div>
                 <div className="track-sighting-meta app-muted">
-                  <span>{s.image?.title || 'Unknown property'}</span>
+                  <span>{s.image?.title || s.asset?.title || 'Unknown property'}</span>
                   <span>{s.source || 'web'}</span>
                   <span>{formatDate(s.createdAt)}</span>
                 </div>

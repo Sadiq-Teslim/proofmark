@@ -12,6 +12,8 @@ const authHeader = () => {
 };
 
 const defaultEngine = () => process.env.FPWM_IMAGE_ENGINE || 'qim-dct';
+const defaultVideoEngine = () => process.env.FPWM_VIDEO_ENGINE || 'qim-dct';
+const maxPayload = () => parseInt(process.env.FPWM_MAX_PAYLOAD || '268435455', 10);
 
 const imageCapabilities = async () => {
   try {
@@ -82,6 +84,66 @@ const imageWatermarkJobStatus = async (jobId) => {
   return res.data;
 };
 
+const createWatermarkVideoJob = async ({
+  sourceUrl,
+  payload,
+  engine = defaultVideoEngine(),
+  strength = null,
+  callbackUrl = null,
+  idempotencyKey = null,
+}) => {
+  const body = {
+    source_url: sourceUrl,
+    payload,
+    max_payload: maxPayload(),
+    engine,
+  };
+  if (strength) body.strength = strength;
+  if (callbackUrl) body.callback_url = callbackUrl;
+  if (idempotencyKey) body.idempotency_key = idempotencyKey;
+
+  const res = await axios.post(`${baseUrl()}/v1/watermark/video`, body, {
+    headers: { Authorization: authHeader() },
+    timeout: parseInt(process.env.FPWM_VIDEO_JOB_TIMEOUT_MS || '120000', 10),
+    maxBodyLength: Infinity,
+    maxContentLength: Infinity,
+  });
+  return res.data;
+};
+
+const videoWatermarkJobStatus = async (jobId) => {
+  const res = await axios.get(`${baseUrl()}/v1/watermark/jobs/${jobId}`, {
+    headers: { Authorization: authHeader() },
+    timeout: parseInt(process.env.FPWM_VIDEO_STATUS_TIMEOUT_MS || '60000', 10),
+  });
+  return res.data;
+};
+
+const createDetectVideoJob = async ({
+  sourceUrl,
+  engine = defaultVideoEngine(),
+}) => {
+  const res = await axios.post(`${baseUrl()}/v1/detect/video`, {
+    source_url: sourceUrl,
+    max_payload: maxPayload(),
+    engine,
+  }, {
+    headers: { Authorization: authHeader() },
+    timeout: parseInt(process.env.FPWM_VIDEO_JOB_TIMEOUT_MS || '120000', 10),
+    maxBodyLength: Infinity,
+    maxContentLength: Infinity,
+  });
+  return res.data;
+};
+
+const videoDetectJobStatus = async (jobId) => {
+  const res = await axios.get(`${baseUrl()}/v1/detect/jobs/${jobId}`, {
+    headers: { Authorization: authHeader() },
+    timeout: parseInt(process.env.FPWM_VIDEO_STATUS_TIMEOUT_MS || '60000', 10),
+  });
+  return res.data;
+};
+
 // Detect a payload in image bytes; returns { marked, payload, confidence, engine }.
 // candidateSizes: [[w,h],...] hints let the engine undo platform resizes.
 const detectImage = async (buffer, filename, engine = defaultEngine(), candidateSizes = null) => {
@@ -104,7 +166,12 @@ module.exports = {
   watermarkImage,
   createWatermarkImageJob,
   imageWatermarkJobStatus,
+  createWatermarkVideoJob,
+  videoWatermarkJobStatus,
+  createDetectVideoJob,
+  videoDetectJobStatus,
   detectImage,
   defaultEngine,
+  defaultVideoEngine,
   imageCapabilities,
 };

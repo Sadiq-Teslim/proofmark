@@ -16,6 +16,7 @@ const Image = sequelize.define('Image', {
   // survives platform resizes (Instagram/Twitter/WhatsApp re-encode pipelines).
   width: { type: DataTypes.INTEGER },
   height: { type: DataTypes.INTEGER },
+  assetId: { type: DataTypes.UUID },
 }, { tableName: 'images' });
 
 module.exports = Image;

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Loader2, UploadCloud } from 'lucide-react';
 
 export function Spinner({ size = 18 }) {
@@ -16,10 +16,21 @@ export function EmptyState({ icon: Icon, title, children, action }) {
   );
 }
 
-export function Dropzone({ file, onFile, hint = 'PNG, JPG or WEBP · up to 25MB' }) {
+export function Dropzone({
+  file,
+  onFile,
+  hint = 'PNG, JPG or WEBP - up to 25MB',
+  accept = 'image/*',
+  label = 'Drop an image or click to upload',
+  previewType = 'image',
+}) {
   const inputRef = useRef(null);
   const [drag, setDrag] = useState(false);
   const preview = file ? URL.createObjectURL(file) : null;
+
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview);
+  }, [preview]);
 
   return (
     <div
@@ -32,19 +43,21 @@ export function Dropzone({ file, onFile, hint = 'PNG, JPG or WEBP · up to 25MB'
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') inputRef.current?.click(); }}
     >
-      {preview ? (
+      {preview && previewType === 'video' ? (
+        <video src={preview} className="app-dropzone-preview app-dropzone-video" muted playsInline />
+      ) : preview ? (
         <img src={preview} alt="Selected preview" className="app-dropzone-preview" />
       ) : (
         <span className="app-dropzone-icon"><UploadCloud size={26} /></span>
       )}
       <div className="app-dropzone-text">
-        <strong>{file ? file.name : 'Drop an image or click to upload'}</strong>
+        <strong>{file ? file.name : label}</strong>
         <span>{file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : hint}</span>
       </div>
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept={accept}
         hidden
         onChange={(e) => onFile(e.target.files?.[0])}
       />
@@ -53,13 +66,13 @@ export function Dropzone({ file, onFile, hint = 'PNG, JPG or WEBP · up to 25MB'
 }
 
 export const formatDate = (date) => {
-  if (!date) return '—';
+  if (!date) return '-';
   return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
     .format(new Date(date));
 };
 
 export const formatDateTime = (date) => {
-  if (!date) return '—';
+  if (!date) return '-';
   return new Intl.DateTimeFormat(undefined, {
     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
   }).format(new Date(date));
