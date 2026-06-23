@@ -1,6 +1,8 @@
 # ProofMark Video Deployment Checklist
 
-Use this checklist before deploying the `codex/proofmark-video-v1` branch for alpha video testing.
+Use this checklist only when we decide to deploy the `codex/proofmark-video-v1` branch for alpha video testing.
+
+Current decision: **do not deploy or restructure video infrastructure yet.** The existing ProofMark image/picture flow remains the active alpha product. The video branch is prepared for later, but worker separation and video infrastructure changes are deferred.
 
 ## ProofMark API Environment
 
@@ -34,7 +36,13 @@ For Standard video V1:
 - `STORAGE_BACKEND=cloudinary`
 - Cloudinary credentials must be configured
 - `MAX_DURATION_S` should be conservative during alpha
-- `WEB_CONCURRENCY=1` is acceptable for the API service, but the worker should be separated before public beta
+- `WEB_CONCURRENCY=1` is acceptable for controlled smoke tests
+
+Deferred:
+
+- Do not split FPWM web/worker/Redis specifically for the current image alpha.
+- Do not add a separate FPWM worker service until video is moving toward public beta or the current engine starts hitting memory/queue limits.
+- Do not enable Strong/neural video during this phase.
 
 Do not enable Strong video yet unless the neural worker has enough memory and the VideoSeal gates pass.
 

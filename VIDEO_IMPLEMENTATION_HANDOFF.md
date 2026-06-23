@@ -177,6 +177,10 @@ Minimum attack matrix:
 
 ### 10. Worker Separation
 
+Status: **deferred until after ProofMark image alpha and early video smoke tests.**
+
+Do not make this part of the current ProofMark deployment. The current image product should continue to run as-is, and the video work lives on the `codex/proofmark-video-v1` branch until we decide to deploy it. Worker separation is a later production hardening step for public video beta, not a requirement for the current picture/image alpha.
+
 Before public video beta, split the deployment.
 
 Recommended services:
@@ -188,6 +192,13 @@ Recommended services:
 - Redis
 
 Video processing should not share memory with the public web API.
+
+Current decision:
+
+- Keep current image protection and verification unchanged.
+- Do not restructure the FPWM deployment right now.
+- Use the existing FPWM deployment only for controlled short-video smoke tests if needed.
+- Revisit worker separation when video moves from internal alpha to public beta or when memory/queue pressure appears.
 
 ### 11. Strong Video Mode
 
