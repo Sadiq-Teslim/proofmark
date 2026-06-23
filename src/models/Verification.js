@@ -7,6 +7,8 @@ const Verification = sequelize.define('Verification', {
   suspectFilename: { type: DataTypes.STRING, defaultValue: '' },
   suspectUrl: { type: DataTypes.TEXT, defaultValue: '' },
   suspectImageUrl: { type: DataTypes.TEXT, defaultValue: '' },
+  suspectMediaUrl: { type: DataTypes.TEXT, defaultValue: '' },
+  assetType: { type: DataTypes.STRING, defaultValue: 'image' },
   source: { type: DataTypes.STRING, defaultValue: 'upload' },
   result: {
     type: DataTypes.ENUM('matched', 'unknown_owner', 'not_found', 'invalid'),
@@ -17,6 +19,7 @@ const Verification = sequelize.define('Verification', {
   engine: { type: DataTypes.STRING, defaultValue: '' },
   message: { type: DataTypes.TEXT, defaultValue: '' },
   evidence: { type: DataTypes.JSONB, defaultValue: {} },
+  assetId: { type: DataTypes.UUID },
 }, {
   tableName: 'verifications',
 });

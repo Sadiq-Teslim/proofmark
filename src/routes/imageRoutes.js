@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const axios = require('axios');
-const { Image, ProtectionJob, Sighting } = require('../models');
+const { Asset, Image, ProtectionJob, Sighting } = require('../models');
 const { uploadBuffer } = require('../config/cloudinary');
 const { protect } = require('../middleware/auth');
 const fpwm = require('../services/fpwmClient');
@@ -56,7 +56,24 @@ const completeProtectionJob = async (job) => {
     engine: job.engine,
     width: result.width || null,
     height: result.height || null,
+    assetId: job.assetId || null,
   });
+  if (job.assetId) {
+    const asset = await Asset.findOne({ where: { id: job.assetId, userId: job.userId } });
+    if (asset) {
+      asset.status = 'ready';
+      asset.protectedUrl = result.watermarked_url;
+      asset.protectedPublicId = result.watermarked_public_id || '';
+      asset.width = result.width || null;
+      asset.height = result.height || null;
+      asset.metadata = {
+        ...(asset.metadata || {}),
+        imageId: image.id,
+        fpwmJobId: status.job_id || job.fpwmJobId,
+      };
+      await asset.save();
+    }
+  }
   job.status = 'ready';
   job.imageId = image.id;
   job.watermarkedUrl = image.watermarkedUrl;
@@ -88,6 +105,22 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       const engineJob = await fpwm.createWatermarkImageJob(
         req.file.buffer, req.file.originalname, payload, engine
       );
+      const asset = await Asset.create({
+        userId: req.user.id,
+        type: 'image',
+        title: req.body.title,
+        originalUrl: original.url,
+        originalPublicId: original.publicId,
+        payload,
+        engine,
+        status: 'processing',
+        sourceFilename: req.file.originalname || '',
+        mimeType: req.file.mimetype || '',
+        metadata: {
+          source: 'proofmark-upload',
+          storage: 'cloudinary',
+        },
+      });
       const job = await ProtectionJob.create({
         userId: req.user.id,
         title: req.body.title,
@@ -98,6 +131,8 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
         engine,
         fpwmJobId: engineJob.job_id,
         status: 'processing',
+        assetId: asset.id,
+        assetType: 'image',
       });
       return res.status(202).json({ job });
     }
@@ -119,6 +154,29 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       width: marked.width,
       height: marked.height,
     });
+    const asset = await Asset.create({
+      userId: req.user.id,
+      type: 'image',
+      title: image.title,
+      originalUrl: image.originalUrl,
+      originalPublicId: image.originalPublicId,
+      protectedUrl: image.watermarkedUrl,
+      protectedPublicId: image.watermarkedPublicId,
+      payload: image.payload,
+      engine: image.engine,
+      status: 'ready',
+      sourceFilename: req.file.originalname || '',
+      mimeType: req.file.mimetype || '',
+      width: image.width,
+      height: image.height,
+      metadata: {
+        source: 'proofmark-upload',
+        storage: 'cloudinary',
+        imageId: image.id,
+      },
+    });
+    image.assetId = asset.id;
+    await image.save();
     res.status(201).json({ image });
   } catch (error) {
     res.status(500).json({ message: 'Watermarking failed', error: error.message });

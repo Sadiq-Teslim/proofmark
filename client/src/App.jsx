@@ -7,10 +7,13 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Overview from './pages/app/Overview.jsx';
 import Protect from './pages/app/Protect.jsx';
+import ProtectVideo from './pages/app/ProtectVideo.jsx';
 import Verify from './pages/app/Verify.jsx';
+import VerifyVideo from './pages/app/VerifyVideo.jsx';
 import Tracking from './pages/app/Tracking.jsx';
 import Properties from './pages/app/Properties.jsx';
 import PropertyDetail from './pages/app/PropertyDetail.jsx';
+import VideoEvidence from './pages/app/VideoEvidence.jsx';
 import Evidence from './pages/app/Evidence.jsx';
 import Settings from './pages/app/Settings.jsx';
 
@@ -31,10 +34,13 @@ export default function App() {
         <Route path="/app" element={<RequireAuth><AppLayout /></RequireAuth>}>
           <Route index element={<Overview />} />
           <Route path="protect" element={<Protect />} />
+          <Route path="protect-video" element={<ProtectVideo />} />
           <Route path="verify" element={<Verify />} />
+          <Route path="verify-video" element={<VerifyVideo />} />
           <Route path="tracking" element={<Tracking />} />
           <Route path="properties" element={<Properties />} />
           <Route path="properties/:id" element={<PropertyDetail />} />
+          <Route path="videos/:id" element={<VideoEvidence />} />
           <Route path="evidence" element={<Evidence />} />
           <Route path="settings" element={<Settings />} />
         </Route>

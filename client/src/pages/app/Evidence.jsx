@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, FileText, Radar, ShieldCheck } from 'lucide-react';
+import {
+  Download, FileText, Radar, ShieldCheck, Video,
+} from 'lucide-react';
 import api from '../../api.js';
 import {
   EmptyState, Spinner, downloadBlob, formatDateTime,
@@ -14,12 +16,24 @@ export default function Evidence() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.allSettled([api.get('/verify'), api.get('/images/sightings')])
-      .then(([ver, sig]) => {
-        if (ver.status === 'fulfilled') setVerifications(ver.value.data.verifications || []);
-        if (sig.status === 'fulfilled') setSightings(sig.value.data.sightings || []);
-        setLoading(false);
-      });
+    Promise.allSettled([
+      api.get('/verify'),
+      api.get('/verify/video'),
+      api.get('/images/sightings'),
+      api.get('/videos/sightings'),
+    ]).then(([ver, videoVer, sig, videoSig]) => {
+      const imageVerifications = ver.status === 'fulfilled' ? ver.value.data.verifications || [] : [];
+      const videoVerifications = videoVer.status === 'fulfilled'
+        ? (videoVer.value.data.verifications || []).map((item) => ({ ...item, assetType: 'video' }))
+        : [];
+      const imageSightings = sig.status === 'fulfilled' ? sig.value.data.sightings || [] : [];
+      const videoSightings = videoSig.status === 'fulfilled'
+        ? (videoSig.value.data.sightings || []).map((item) => ({ ...item, assetType: 'video' }))
+        : [];
+      setVerifications([...imageVerifications, ...videoVerifications]);
+      setSightings([...imageSightings, ...videoSightings]);
+      setLoading(false);
+    });
   }, []);
 
   const downloadReport = async (id) => {
@@ -65,8 +79,13 @@ export default function Evidence() {
             {verifications.map((v) => (
               <li key={v.id}>
                 <span className={`app-pill ${TONE[v.result] || 'neutral'}`}>{v.result.replace('_', ' ')}</span>
+                {v.assetType === 'video' && <span className="app-pill neutral"><Video size={12} /> video</span>}
                 <span className="pd-list-main">
-                  {v.image ? <Link to={`/app/properties/${v.image.id}`}>{v.image.title}</Link> : (v.message || 'Verification')}
+                  {v.assetType === 'video' && v.asset
+                    ? <Link to={`/app/videos/${v.asset.id}`}>{v.asset.title}</Link>
+                    : v.image
+                      ? <Link to={`/app/properties/${v.image.id}`}>{v.image.title}</Link>
+                      : (v.message || 'Verification')}
                 </span>
                 <span className="app-muted">{formatDateTime(v.createdAt)}</span>
                 <button className="app-ghost-btn" onClick={() => downloadReport(v.id)}>
@@ -85,8 +104,9 @@ export default function Evidence() {
             {confirmedSightings.map((s) => (
               <li key={s.id}>
                 <span className="app-pill success">Confirmed</span>
+                {s.assetType === 'video' && <span className="app-pill neutral"><Video size={12} /> video</span>}
                 <a className="pd-list-main" href={s.pageUrl} target="_blank" rel="noreferrer">{s.pageUrl}</a>
-                <span className="app-muted">{s.image?.title || '—'}</span>
+                <span className="app-muted">{s.image?.title || s.asset?.title || '-'}</span>
               </li>
             ))}
           </ul>

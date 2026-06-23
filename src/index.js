@@ -16,6 +16,7 @@ app.use(morgan('dev'));
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'proofmark' }));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/images', require('./routes/imageRoutes'));
+app.use('/api/videos', require('./routes/videoRoutes'));
 app.use('/api/verify', require('./routes/verifyRoutes'));
 
 const PORT = process.env.PORT || 4000;

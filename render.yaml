@@ -30,6 +30,18 @@ services:
         sync: false
       - key: FPWM_IMAGE_ENGINE
         value: qim-dct
+      - key: FPWM_VIDEO_ENGINE
+        value: qim-dct
+      - key: FPWM_MAX_PAYLOAD
+        value: "268435455"
+      - key: FPWM_VIDEO_JOB_TIMEOUT_MS
+        value: "120000"
+      - key: FPWM_VIDEO_STATUS_TIMEOUT_MS
+        value: "60000"
+      - key: MAX_VIDEO_UPLOAD_MB
+        value: "250"
+      - key: MAX_VERIFY_VIDEO_UPLOAD_MB
+        value: "250"
       - key: CLIENT_URL
         sync: false
 
