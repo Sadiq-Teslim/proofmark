@@ -9,6 +9,7 @@ import {
   Radar,
   ShieldCheck,
   Sparkles,
+  Video,
 } from 'lucide-react';
 import api from '../../api.js';
 import { Dropzone, Spinner, downloadBlob } from '../../components/ui/widgets.jsx';
@@ -96,6 +97,14 @@ export default function Protect() {
       <div>
         <h2>Protect an image</h2>
         <p className="app-muted">Upload an image and get a watermarked version to publish or send.</p>
+      </div>
+      <div className="app-segment media-switch">
+        <button type="button" className="active">
+          <ShieldCheck size={15} /> Image
+        </button>
+        <button type="button" onClick={() => navigate('/app/protect-video')}>
+          <Video size={15} /> Video
+        </button>
       </div>
       <div className="protect-grid">
         <form className="app-card protect-form" onSubmit={submit}>

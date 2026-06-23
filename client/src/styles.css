@@ -4668,6 +4668,7 @@ select.app-input { appearance: none; cursor: pointer; }
 }
 .app-segment button.active { background: var(--app-surface); color: var(--app-ink); box-shadow: 0 1px 2px rgba(16, 32, 28, 0.08); }
 .app-segment.app-segment-sm button { padding: 7px 10px; }
+.media-switch { width: fit-content; }
 
 .app-table-wrap { overflow-x: auto; }
 .app-table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -4985,6 +4986,8 @@ select.app-input { appearance: none; cursor: pointer; }
   .verify-evidence { grid-template-columns: 1fr 1fr; }
   .verify-evidence.video-evidence-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .props-controls { width: 100%; }
+  .media-switch { width: 100%; }
+  .media-switch button { flex: 1; justify-content: center; }
   .props-search { flex: 1; width: auto; }
   .prop-card.list { flex-direction: column; align-items: stretch; }
   .prop-card.list .prop-thumb img { width: 100%; height: 160px; }

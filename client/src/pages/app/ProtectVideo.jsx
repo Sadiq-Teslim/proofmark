@@ -7,6 +7,7 @@ import {
   Clock3,
   FileVideo,
   Fingerprint,
+  Image,
   PlayCircle,
   ShieldCheck,
   Sparkles,
@@ -95,6 +96,14 @@ export default function ProtectVideo() {
           <h2>Protect a video</h2>
           <p className="app-muted">Upload a video and generate the protected version you will publish or send.</p>
         </div>
+      </div>
+      <div className="app-segment media-switch">
+        <button type="button" onClick={() => navigate('/app/protect')}>
+          <Image size={15} /> Image
+        </button>
+        <button type="button" className="active">
+          <FileVideo size={15} /> Video
+        </button>
       </div>
 
       <div className="protect-grid video-flow-grid">

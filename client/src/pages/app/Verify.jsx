@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
   BadgeCheck,
@@ -7,6 +7,7 @@ import {
   CircleMinus,
   Download,
   Fingerprint,
+  FileVideo,
   Link as LinkIcon,
   ShieldCheck,
   UploadCloud,
@@ -24,6 +25,7 @@ const OUTCOME = {
 };
 
 export default function Verify() {
+  const navigate = useNavigate();
   const [method, setMethod] = useState('upload');
   const [file, setFile] = useState(null);
   const [url, setUrl] = useState('');
@@ -79,6 +81,14 @@ export default function Verify() {
       <div>
         <h2>Verify a copy</h2>
         <p className="app-muted">Check whether a suspect image is one of your protected ProofMark images.</p>
+      </div>
+      <div className="app-segment media-switch">
+        <button type="button" className="active">
+          <ShieldCheck size={15} /> Image
+        </button>
+        <button type="button" onClick={() => navigate('/app/verify-video')}>
+          <FileVideo size={15} /> Video
+        </button>
       </div>
 
       <div className="verify-grid">
