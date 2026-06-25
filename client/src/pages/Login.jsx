@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import api from '../api.js';
 import { useAuth } from '../auth.jsx';
-import GoogleIcon from '../components/GoogleIcon.jsx';
 import Logo from '../components/Logo.jsx';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -104,13 +103,6 @@ export default function Login() {
           <button className="signin-submit" disabled={busy}>
             {busy && <Loader2 className="spin" size={22} />}
             <span>Sign in</span>
-          </button>
-
-          <div className="signin-divider"><span>or</span></div>
-
-          <button className="signin-google" type="button" disabled title="Coming soon">
-            <GoogleIcon />
-            <strong>Continue with Google</strong>
           </button>
 
           <p className="signin-switch">
