@@ -10,15 +10,24 @@ test('adds assets.type before Sequelize sync can create its index', async (t) =>
   const originalGetQueryInterface = sequelize.getQueryInterface;
   const addedColumns = [];
   const existingAssetColumns = {
+    userId: {},
+    title: {},
+    originalUrl: {},
+    originalPublicId: {},
     protectedUrl: {},
     protectedPublicId: {},
+    engine: {},
     status: {},
     error: {},
     sourceFilename: {},
     mimeType: {},
+    width: {},
+    height: {},
     durationSeconds: {},
     fps: {},
     metadata: {},
+    createdAt: {},
+    updatedAt: {},
   };
 
   sequelize.getQueryInterface = () => ({
@@ -33,7 +42,7 @@ test('adds assets.type before Sequelize sync can create its index', async (t) =>
 
   await ensureSchemaCompatibility();
 
-  assert.deepEqual(addedColumns, ['assets.type']);
+  assert.deepEqual(addedColumns, ['assets.type', 'assets.payload']);
 });
 
 test('holds and releases the schema lock on the same connection', async (t) => {

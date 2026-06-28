@@ -28,9 +28,25 @@ const ensureSchemaCompatibility = async () => {
 
   const assets = await describeTable(queryInterface, 'assets');
   if (assets) {
+    await addColumnIfMissing(queryInterface, 'assets', assets, 'userId', {
+      type: DataTypes.UUID,
+      allowNull: true,
+    });
     await addColumnIfMissing(queryInterface, 'assets', assets, 'type', {
       type: DataTypes.STRING,
       defaultValue: 'image',
+    });
+    await addColumnIfMissing(queryInterface, 'assets', assets, 'title', {
+      type: DataTypes.STRING,
+      defaultValue: '',
+    });
+    await addColumnIfMissing(queryInterface, 'assets', assets, 'originalUrl', {
+      type: DataTypes.TEXT,
+      defaultValue: '',
+    });
+    await addColumnIfMissing(queryInterface, 'assets', assets, 'originalPublicId', {
+      type: DataTypes.STRING,
+      defaultValue: '',
     });
     await addColumnIfMissing(queryInterface, 'assets', assets, 'protectedUrl', {
       type: DataTypes.TEXT,
@@ -39,6 +55,16 @@ const ensureSchemaCompatibility = async () => {
     await addColumnIfMissing(queryInterface, 'assets', assets, 'protectedPublicId', {
       type: DataTypes.STRING,
       defaultValue: '',
+    });
+    // A legacy row cannot be assigned an invented forensic payload safely.
+    // New writes always provide a unique sequence-backed value.
+    await addColumnIfMissing(queryInterface, 'assets', assets, 'payload', {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    });
+    await addColumnIfMissing(queryInterface, 'assets', assets, 'engine', {
+      type: DataTypes.STRING,
+      defaultValue: 'qim-dct',
     });
     await addColumnIfMissing(queryInterface, 'assets', assets, 'status', {
       type: DataTypes.STRING,
@@ -56,6 +82,14 @@ const ensureSchemaCompatibility = async () => {
       type: DataTypes.STRING,
       defaultValue: '',
     });
+    await addColumnIfMissing(queryInterface, 'assets', assets, 'width', {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    });
+    await addColumnIfMissing(queryInterface, 'assets', assets, 'height', {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    });
     await addColumnIfMissing(queryInterface, 'assets', assets, 'durationSeconds', {
       type: DataTypes.FLOAT,
       allowNull: true,
@@ -67,6 +101,14 @@ const ensureSchemaCompatibility = async () => {
     await addColumnIfMissing(queryInterface, 'assets', assets, 'metadata', {
       type: DataTypes.JSONB,
       defaultValue: {},
+    });
+    await addColumnIfMissing(queryInterface, 'assets', assets, 'createdAt', {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    });
+    await addColumnIfMissing(queryInterface, 'assets', assets, 'updatedAt', {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     });
   }
 
