@@ -19,8 +19,9 @@ export default function Settings() {
   }, []);
 
   const engines = caps?.engines || {};
-  const standardOk = engines['qim-dct']?.available ?? true;
+  const standardOk = engines['qim-dct']?.available ?? false;
   const strongOk = engines.trustmark?.available ?? false;
+  const engineConnected = caps?.source === 'engine';
 
   return (
     <div className="app-page-head set">
@@ -52,7 +53,9 @@ export default function Settings() {
             </div>
             <div className="set-row">
               <span className="app-muted">Engine connection</span>
-              <span className={`app-pill ${caps ? 'success' : 'danger'}`}>{caps ? 'Connected' : 'Unreachable'}</span>
+              <span className={`app-pill ${engineConnected ? 'success' : 'danger'}`}>
+                {engineConnected ? 'Connected' : 'Unreachable'}
+              </span>
             </div>
           </div>
         )}

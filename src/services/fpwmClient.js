@@ -26,11 +26,13 @@ const imageCapabilities = async () => {
     return {
       default_engine: defaultEngine(),
       source: 'fallback',
+      available: false,
+      upstream_status: error.response?.status || null,
       error: error.response?.data?.detail || error.message,
       engines: {
-        'qim-dct': { available: true, tier: 'standard' },
+        'qim-dct': { available: false, tier: 'standard' },
         trustmark: {
-          available: /^true$/i.test(process.env.FPWM_TRUSTMARK_ENABLED || ''),
+          available: false,
           tier: 'strong',
         },
       },

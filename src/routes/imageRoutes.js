@@ -94,9 +94,12 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     const payload = await allocateUniquePayload();
     const engine = req.body.engine || fpwm.defaultEngine();
     const capabilities = await fpwm.imageCapabilities();
-    if (engine === 'trustmark' && !capabilities.engines?.trustmark?.available) {
-      return res.status(409).json({
-        message: 'Strong protection is not available yet. Enable TrustMark in the watermark engine and pass the strong-mode benchmark before using it.',
+    if (!capabilities.engines?.[engine]?.available) {
+      const isStrong = engine === 'trustmark';
+      return res.status(isStrong ? 409 : 503).json({
+        message: isStrong
+          ? 'Strong protection is not available yet. Enable TrustMark in the watermark engine and pass the strong-mode benchmark before using it.'
+          : 'Image protection is temporarily unavailable because the watermark engine is offline.',
         capabilities,
       });
     }
@@ -179,7 +182,22 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     await image.save();
     res.status(201).json({ image });
   } catch (error) {
-    res.status(500).json({ message: 'Watermarking failed', error: error.message });
+    const upstreamStatus = error.response?.status || null;
+    const upstreamDetail = error.response?.data?.detail
+      || error.response?.data?.message
+      || error.response?.data?.error
+      || error.message;
+    console.error('Image watermarking failed', {
+      upstreamStatus,
+      code: error.code || null,
+      detail: upstreamDetail,
+    });
+    res.status(upstreamStatus ? 502 : 500).json({
+      message: upstreamStatus
+        ? 'The watermark engine could not protect this image.'
+        : 'Watermarking failed',
+      error: upstreamDetail,
+    });
   }
 });
 

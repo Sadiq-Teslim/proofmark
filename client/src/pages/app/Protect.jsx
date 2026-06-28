@@ -26,6 +26,7 @@ export default function Protect() {
   const [title, setTitle] = useState('');
   const [file, setFile] = useState(null);
   const [engine, setEngine] = useState('qim-dct');
+  const [standardAvailable, setStandardAvailable] = useState(null);
   const [strongAvailable, setStrongAvailable] = useState(false);
   const [busy, setBusy] = useState(false);
   const [statusText, setStatusText] = useState('');
@@ -35,8 +36,14 @@ export default function Protect() {
 
   useEffect(() => {
     api.get('/images/capabilities')
-      .then(({ data }) => setStrongAvailable(Boolean(data.capabilities?.engines?.trustmark?.available)))
-      .catch(() => setStrongAvailable(false));
+      .then(({ data }) => {
+        setStandardAvailable(Boolean(data.capabilities?.engines?.['qim-dct']?.available));
+        setStrongAvailable(Boolean(data.capabilities?.engines?.trustmark?.available));
+      })
+      .catch(() => {
+        setStandardAvailable(false);
+        setStrongAvailable(false);
+      });
   }, []);
 
   const pollJob = async (jobId) => {
@@ -125,8 +132,9 @@ export default function Protect() {
           <div className="protect-modes">
             <button
               type="button"
-              className={`protect-mode ${engine === 'qim-dct' ? 'active' : ''}`}
+              className={`protect-mode ${engine === 'qim-dct' ? 'active' : ''} ${standardAvailable === false ? 'disabled' : ''}`}
               onClick={() => setEngine('qim-dct')}
+              disabled={standardAvailable === false}
             >
               <ShieldCheck size={18} />
               <div>
@@ -152,8 +160,16 @@ export default function Protect() {
           </div>
 
           {err && <div className="app-error">{err}</div>}
+          {standardAvailable === false && (
+            <div className="app-error">
+              Protection is temporarily unavailable while the watermark engine reconnects.
+            </div>
+          )}
 
-          <button className="app-primary-btn protect-submit" disabled={busy || !file || !title}>
+          <button
+            className="app-primary-btn protect-submit"
+            disabled={busy || !file || !title || standardAvailable !== true}
+          >
             {busy ? <Spinner /> : <ShieldCheck size={16} />}
             <span>{busy ? (statusText || 'Protecting…') : 'Create protected image'}</span>
           </button>
