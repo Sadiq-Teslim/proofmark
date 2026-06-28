@@ -3,8 +3,15 @@ const sequelize = require('../config/db');
 
 const addColumnIfMissing = async (queryInterface, tableName, columns, columnName, definition) => {
   if (columns[columnName]) return;
-  await queryInterface.addColumn(tableName, columnName, definition);
-  console.log(`Added missing column ${tableName}.${columnName}`);
+  try {
+    await queryInterface.addColumn(tableName, columnName, definition);
+    console.log(`Added missing column ${tableName}.${columnName}`);
+  } catch (error) {
+    // A blue-green deploy can briefly run two application instances.
+    // Treat another instance adding the same column first as success.
+    if (error?.original?.code === '42701') return;
+    throw error;
+  }
 };
 
 const describeTable = async (queryInterface, tableName) => {
@@ -220,4 +227,24 @@ const ensureSchemaCompatibility = async () => {
   }
 };
 
-module.exports = { ensureSchemaCompatibility };
+const withSchemaLock = async (callback) => {
+  const lockName = 'proofmark:schema-bootstrap';
+  const connection = await sequelize.connectionManager.getConnection({ type: 'WRITE' });
+  let locked = false;
+
+  try {
+    await connection.query('SELECT pg_advisory_lock(hashtext($1))', [lockName]);
+    locked = true;
+    return await callback();
+  } finally {
+    try {
+      if (locked) {
+        await connection.query('SELECT pg_advisory_unlock(hashtext($1))', [lockName]);
+      }
+    } finally {
+      await sequelize.connectionManager.releaseConnection(connection);
+    }
+  }
+};
+
+module.exports = { ensureSchemaCompatibility, withSchemaLock };

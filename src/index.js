@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const sequelize = require('./config/db');
 require('./models'); // register models + associations
 const { ensureSequence } = require('./services/payload');
-const { ensureSchemaCompatibility } = require('./services/schema');
+const { ensureSchemaCompatibility, withSchemaLock } = require('./services/schema');
 const { startScanScheduler } = require('./jobs/scanScheduler');
 
 const app = express();
@@ -23,10 +23,15 @@ const PORT = process.env.PORT || 4000;
 
 const start = async () => {
   await sequelize.authenticate();
-  await sequelize.sync();        // create tables if missing
-  await ensureSchemaCompatibility(); // add safe, known columns to older prod tables
-  await ensureSequence();        // payload id sequence
-  startScanScheduler();          // web tracker (if a search provider is configured)
+  await withSchemaLock(async () => {
+    // Upgrade legacy tables before sync creates indexes that reference new columns.
+    await ensureSchemaCompatibility();
+    await sequelize.sync();
+    // New tables are created by sync; this second pass is intentionally idempotent.
+    await ensureSchemaCompatibility();
+    await ensureSequence();
+  });
+  startScanScheduler(); // web tracker (if a search provider is configured)
   app.listen(PORT, () => console.log(`ProofMark API on :${PORT}`));
 };
 
