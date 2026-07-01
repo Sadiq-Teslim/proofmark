@@ -45,12 +45,16 @@ const detectWithKnownEngines = async ({
         return { ...detected, verificationAttempts: attempts };
       }
     } catch (error) {
-      attempts.push({
+      const attempt = {
         engine,
         status: 'unavailable',
         requestAttempts: error.detectionAttempts || 1,
+        code: error.code || null,
+        upstreamStatus: error.response?.status || null,
         error: error.response?.data?.detail || error.message,
-      });
+      };
+      attempts.push(attempt);
+      console.error('ProofMark image detector unavailable', attempt);
     }
   }
 

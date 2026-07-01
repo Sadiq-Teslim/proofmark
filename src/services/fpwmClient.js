@@ -1,13 +1,19 @@
 const axios = require('axios');
 const FormData = require('form-data');
 
+const configError = (message) => {
+  const error = new Error(message);
+  error.code = 'FPWM_CONFIG_MISSING';
+  return error;
+};
+
 const baseUrl = () => {
-  if (!process.env.FPWM_BASE_URL) throw new Error('FPWM_BASE_URL is required');
+  if (!process.env.FPWM_BASE_URL) throw configError('FPWM_BASE_URL is required');
   return process.env.FPWM_BASE_URL.replace(/\/$/, '');
 };
 
 const authHeader = () => {
-  if (!process.env.FPWM_API_KEY) throw new Error('FPWM_API_KEY is required');
+  if (!process.env.FPWM_API_KEY) throw configError('FPWM_API_KEY is required');
   return `Bearer ${process.env.FPWM_API_KEY}`;
 };
 
@@ -17,12 +23,39 @@ const maxPayload = () => parseInt(process.env.FPWM_MAX_PAYLOAD || '268435455', 1
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const isTransientDetectionError = (error) => {
+  if (error.code === 'FPWM_CONFIG_MISSING') return false;
   const status = error.response?.status;
   return (
     !error.response
     || [408, 425, 429].includes(status)
     || status >= 500
   );
+};
+
+const imageConnectionStatus = async () => {
+  const configured = Boolean(process.env.FPWM_BASE_URL && process.env.FPWM_API_KEY);
+  try {
+    const res = await axios.get(`${baseUrl()}/v1/image/capabilities`, {
+      headers: { Authorization: authHeader() },
+      timeout: parseInt(process.env.FPWM_CAPABILITIES_TIMEOUT_MS || '60000', 10),
+    });
+    return {
+      status: 'ok',
+      configured: true,
+      reachable: true,
+      upstreamStatus: res.status,
+      defaultEngine: res.data?.default_engine || null,
+    };
+  } catch (error) {
+    return {
+      status: 'unavailable',
+      configured,
+      reachable: Boolean(error.response),
+      upstreamStatus: error.response?.status || null,
+      code: error.code || null,
+      error: error.response?.data?.detail || error.message,
+    };
+  }
 };
 
 const imageCapabilities = async () => {
@@ -207,4 +240,5 @@ module.exports = {
   defaultVideoEngine,
   imageCapabilities,
   isTransientDetectionError,
+  imageConnectionStatus,
 };
