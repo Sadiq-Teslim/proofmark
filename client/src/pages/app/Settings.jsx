@@ -27,7 +27,7 @@ export default function Settings() {
     <div className="app-page-head set">
       <div>
         <h2>Settings</h2>
-        <p className="app-muted">Manage your account, protection engine, and privacy.</p>
+        <p className="app-muted">Manage your account, protection options, and privacy.</p>
       </div>
 
       <section className="app-card set-section">
@@ -40,19 +40,19 @@ export default function Settings() {
       </section>
 
       <section className="app-card set-section">
-        <div className="set-section-head"><Cpu size={17} /><h3>Watermark engine</h3></div>
+        <div className="set-section-head"><Cpu size={17} /><h3>Protection service</h3></div>
         {loading ? <Spinner /> : (
           <div className="set-rows">
             <div className="set-row">
-              <span className="app-muted">Standard (QIM-DCT)</span>
+              <span className="app-muted">ProofMark Standard</span>
               <span className={`app-pill ${standardOk ? 'success' : 'danger'}`}>{standardOk ? 'Available' : 'Offline'}</span>
             </div>
             <div className="set-row">
-              <span className="app-muted">Strong (TrustMark)</span>
+              <span className="app-muted">ProofMark Advanced</span>
               <span className={`app-pill ${strongOk ? 'success' : 'neutral'}`}>{strongOk ? 'Available' : 'Not enabled'}</span>
             </div>
             <div className="set-row">
-              <span className="app-muted">Engine connection</span>
+              <span className="app-muted">Protection service</span>
               <span className={`app-pill ${engineConnected ? 'success' : 'danger'}`}>
                 {engineConnected ? 'Connected' : 'Unreachable'}
               </span>

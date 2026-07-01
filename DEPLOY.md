@@ -16,11 +16,11 @@ created on first boot (Sequelize sync).
 
    **proofmark-api**
    ```
-   JWT_SECRET=ede8ffa66a30e3c3f7c52ff9f2436d9fa6bbf73f592577a978291edd8f7537bb
-   CLOUDINARY_CLOUD_NAME=dw8tqfqaj
-   CLOUDINARY_API_KEY=653635422627148
-   CLOUDINARY_API_SECRET=YfkXV1r-bS4M95dS_-VgaoARtxA
-   FPWM_API_KEY=SpcvQvvzw4E1JWjPngZlc3Orqk6M4CAZ6M8s6bfYT_KnqoPYKDbnXx_LQk_NRisK
+   JWT_SECRET=<generate-a-long-random-secret>
+   CLOUDINARY_CLOUD_NAME=<cloudinary-cloud-name>
+   CLOUDINARY_API_KEY=<cloudinary-api-key>
+   CLOUDINARY_API_SECRET=<cloudinary-api-secret>
+   FPWM_API_KEY=<watermark-engine-api-key>
    CLIENT_URL=<the proofmark-web URL, set after first deploy>
    ```
    (DATABASE_URL, FPWM_BASE_URL and FPWM_IMAGE_ENGINE=qim-dct are already wired by the blueprint.)

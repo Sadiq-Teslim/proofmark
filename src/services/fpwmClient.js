@@ -14,6 +14,16 @@ const authHeader = () => {
 const defaultEngine = () => process.env.FPWM_IMAGE_ENGINE || 'qim-dct';
 const defaultVideoEngine = () => process.env.FPWM_VIDEO_ENGINE || 'qim-dct';
 const maxPayload = () => parseInt(process.env.FPWM_MAX_PAYLOAD || '268435455', 10);
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isTransientDetectionError = (error) => {
+  const status = error.response?.status;
+  return (
+    !error.response
+    || [408, 425, 429].includes(status)
+    || status >= 500
+  );
+};
 
 const imageCapabilities = async () => {
   try {
@@ -149,19 +159,39 @@ const videoDetectJobStatus = async (jobId) => {
 // Detect a payload in image bytes; returns { marked, payload, confidence, engine }.
 // candidateSizes: [[w,h],...] hints let the engine undo platform resizes.
 const detectImage = async (buffer, filename, engine = defaultEngine(), candidateSizes = null) => {
-  const form = new FormData();
-  form.append('file', buffer, { filename: filename || 'image' });
-  form.append('engine', engine);
-  if (candidateSizes && candidateSizes.length > 0) {
-    form.append('candidate_sizes', JSON.stringify(candidateSizes));
+  const retries = Math.max(0, parseInt(process.env.FPWM_IMAGE_DETECT_RETRIES || '2', 10));
+  const retryDelayMs = Math.max(
+    0,
+    parseInt(process.env.FPWM_IMAGE_DETECT_RETRY_DELAY_MS || '750', 10)
+  );
+  const timeoutMs = Math.max(
+    1000,
+    parseInt(process.env.FPWM_IMAGE_DETECT_TIMEOUT_MS || '30000', 10)
+  );
+
+  for (let attempt = 1; attempt <= retries + 1; attempt += 1) {
+    const form = new FormData();
+    form.append('file', buffer, { filename: filename || 'image' });
+    form.append('engine', engine);
+    if (candidateSizes && candidateSizes.length > 0) {
+      form.append('candidate_sizes', JSON.stringify(candidateSizes));
+    }
+
+    try {
+      const res = await axios.post(`${baseUrl()}/v1/image/detect`, form, {
+        headers: { Authorization: authHeader(), ...form.getHeaders() },
+        timeout: timeoutMs,
+        maxBodyLength: Infinity,
+      });
+      return { ...res.data, requestAttempts: attempt };
+    } catch (error) {
+      error.detectionAttempts = attempt;
+      if (attempt > retries || !isTransientDetectionError(error)) throw error;
+      await sleep(retryDelayMs * attempt);
+    }
   }
 
-  const res = await axios.post(`${baseUrl()}/v1/image/detect`, form, {
-    headers: { Authorization: authHeader(), ...form.getHeaders() },
-    timeout: 120000,
-    maxBodyLength: Infinity,
-  });
-  return res.data;
+  throw new Error('Image detection failed');
 };
 
 module.exports = {
@@ -176,4 +206,5 @@ module.exports = {
   defaultEngine,
   defaultVideoEngine,
   imageCapabilities,
+  isTransientDetectionError,
 };

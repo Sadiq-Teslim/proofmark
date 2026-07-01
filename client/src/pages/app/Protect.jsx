@@ -16,7 +16,7 @@ import { Dropzone, Spinner, downloadBlob } from '../../components/ui/widgets.jsx
 
 const RESILIENCE = [
   'JPEG re-compression',
-  'Resizing & cropping',
+  'Resizing and common re-encoding',
   'Social re-encode (IG / X / WhatsApp)',
   'Screenshots & re-uploads',
 ];
@@ -128,7 +128,7 @@ export default function Protect() {
           <label className="app-label">Image file</label>
           <Dropzone file={file} onFile={setFile} />
 
-          <label className="app-label">Protection mode</label>
+          <label className="app-label">Protection level</label>
           <div className="protect-modes">
             <button
               type="button"
@@ -138,8 +138,8 @@ export default function Protect() {
             >
               <ShieldCheck size={18} />
               <div>
-                <strong>Standard</strong>
-                <span>Fast · survives compression, resizing &amp; re-uploads</span>
+                <strong>ProofMark Standard</strong>
+                <span>Fast protection for sharing, compression, resizing, and reposting</span>
               </div>
               {engine === 'qim-dct' && <Check className="protect-mode-check" size={18} />}
             </button>
@@ -148,12 +148,12 @@ export default function Protect() {
               className={`protect-mode ${engine === 'trustmark' ? 'active' : ''} ${strongAvailable ? '' : 'disabled'}`}
               onClick={() => strongAvailable && setEngine('trustmark')}
               disabled={!strongAvailable}
-              title={strongAvailable ? '' : 'Strong protection is not enabled yet'}
+              title={strongAvailable ? '' : 'ProofMark Advanced is coming soon'}
             >
               <Sparkles size={18} />
               <div>
-                <strong>Strong {strongAvailable ? '' : '· coming soon'}</strong>
-                <span>Neural · survives screenshots &amp; heavy social re-encode</span>
+                <strong>ProofMark Advanced {strongAvailable ? '' : '· coming soon'}</strong>
+                <span>Stronger protection for screenshots, crops, and heavier edits</span>
               </div>
               {engine === 'trustmark' && <Check className="protect-mode-check" size={18} />}
             </button>
@@ -162,7 +162,7 @@ export default function Protect() {
           {err && <div className="app-error">{err}</div>}
           {standardAvailable === false && (
             <div className="app-error">
-              Protection is temporarily unavailable while the watermark engine reconnects.
+              Protection is temporarily unavailable while the protection service reconnects.
             </div>
           )}
 

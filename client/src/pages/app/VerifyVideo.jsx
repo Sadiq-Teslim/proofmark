@@ -17,6 +17,7 @@ import api from '../../api.js';
 import {
   Dropzone, EmptyState, Spinner, downloadBlob, formatDate, formatDateTime,
 } from '../../components/ui/widgets.jsx';
+import { protectionLevelName } from '../../protectionLevels.js';
 
 const OUTCOME = {
   matched: { icon: BadgeCheck, title: 'Matched your video', tone: 'success' },
@@ -195,7 +196,7 @@ export default function VerifyVideo() {
                 <div><span>Detected payload</span><strong>{evidenceValue(detected.payload)}</strong></div>
                 <div><span>Confidence</span><strong>{detected.confidence != null ? `${Math.round(detected.confidence * 100)}%` : '-'}</strong></div>
                 <div><span>Frames voted</span><strong>{evidenceValue(detected.framesVoted ?? detected.frames_voted)}</strong></div>
-                <div><span>Engine</span><strong>{evidenceValue(detected.engine)}</strong></div>
+                <div><span>Protection level</span><strong>{protectionLevelName(detected.engine)}</strong></div>
                 <div><span>Audio</span><strong>{detected.audioCorroborated ? 'Corroborated' : 'Not used'}</strong></div>
                 <div><span>Strict result</span><strong>{result.result.replace('_', ' ')}</strong></div>
               </div>

@@ -98,8 +98,8 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       const isStrong = engine === 'trustmark';
       return res.status(isStrong ? 409 : 503).json({
         message: isStrong
-          ? 'Strong protection is not available yet. Enable TrustMark in the watermark engine and pass the strong-mode benchmark before using it.'
-          : 'Image protection is temporarily unavailable because the watermark engine is offline.',
+          ? 'ProofMark Advanced is not available yet.'
+          : 'Image protection is temporarily unavailable because the protection service is offline.',
         capabilities,
       });
     }
@@ -194,7 +194,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     });
     res.status(upstreamStatus ? 502 : 500).json({
       message: upstreamStatus
-        ? 'The watermark engine could not protect this image.'
+        ? 'The protection service could not protect this image.'
         : 'Watermarking failed',
       error: upstreamDetail,
     });

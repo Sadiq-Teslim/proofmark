@@ -1,6 +1,7 @@
 const axios = require('axios');
 const dns = require('dns').promises;
 const net = require('net');
+const { describeImageBuffer } = require('./imageEvidence');
 
 const MAX_REMOTE_IMAGE_BYTES = 25 * 1024 * 1024;
 
@@ -73,7 +74,15 @@ const fetchRemoteImage = async (rawUrl) => {
   }
 
   const filename = decodeURIComponent(new URL(url).pathname.split('/').pop() || 'remote-image');
-  return { buffer, filename, contentType, url };
+  const evidence = describeImageBuffer(buffer, contentType, {
+    requestedUrl: rawUrl,
+    resolvedUrl: url,
+    host: new URL(url).hostname,
+    etag: response.headers.etag || '',
+    lastModified: response.headers['last-modified'] || '',
+    cacheControl: response.headers['cache-control'] || '',
+  });
+  return { buffer, filename, contentType, url, evidence };
 };
 
 module.exports = { fetchRemoteImage, assertPublicHttpUrl, MAX_REMOTE_IMAGE_BYTES };

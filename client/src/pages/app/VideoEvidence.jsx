@@ -15,6 +15,7 @@ import api from '../../api.js';
 import {
   EmptyState, Spinner, downloadBlob, formatDate, formatDateTime,
 } from '../../components/ui/widgets.jsx';
+import { protectionLevelName } from '../../protectionLevels.js';
 
 const TABS = ['Overview', 'Verifications', 'Sightings', 'Evidence'];
 const TONE = { matched: 'success', unknown_owner: 'warning', not_found: 'neutral', invalid: 'danger' };
@@ -88,7 +89,7 @@ export default function VideoEvidence() {
           <h2>{video.title}</h2>
           <div className="pd-meta">
             <span><Fingerprint size={14} /> Payload #{video.payload}</span>
-            <span>Engine: {video.engine}</span>
+            <span>Protection: {protectionLevelName(video.engine)}</span>
             <span>Protected {formatDate(video.createdAt)}</span>
             {video.durationSeconds && <span>{Math.round(video.durationSeconds)}s</span>}
           </div>

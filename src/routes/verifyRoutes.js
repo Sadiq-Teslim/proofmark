@@ -9,6 +9,9 @@ const { uploadBuffer, uploadFile } = require('../config/cloudinary');
 const { protect } = require('../middleware/auth');
 const fpwm = require('../services/fpwmClient');
 const { fetchRemoteImage } = require('../services/remoteImage');
+const { protectionLevelName } = require('../services/protectionLevels');
+const { describeImageBuffer } = require('../services/imageEvidence');
+const { detectWithKnownEngines } = require('../services/imageDetection');
 
 const router = express.Router();
 const upload = multer({
@@ -33,8 +36,6 @@ const videoUpload = multer({
     return cb(null, true);
   },
 });
-
-const unique = (items) => [...new Set(items.filter(Boolean))];
 
 const knownImageAttributes = [
   'id',
@@ -62,49 +63,42 @@ const publicAssetAttributes = [
   'createdAt',
 ];
 
-const candidateSizesFor = (knownImages) => unique(
-  knownImages
-    .filter((image) => image.width && image.height)
-    .map((image) => `${image.width}x${image.height}`)
-).map((size) => size.split('x').map(Number));
-
-const detectWithKnownEngines = async ({ buffer, filename, knownImages, requestedEngine }) => {
-  const candidateSizes = candidateSizesFor(knownImages);
-  const engines = requestedEngine
-    ? [requestedEngine]
-    : unique([...knownImages.map((image) => image.engine), fpwm.defaultEngine()]);
-
-  const errors = [];
-  for (const engine of engines) {
-    try {
-      const detected = await fpwm.detectImage(buffer, filename, engine, candidateSizes);
-      if (detected.marked && detected.payload) return detected;
-    } catch (error) {
-      errors.push(`${engine}: ${error.message}`);
-    }
-  }
-
-  if (requestedEngine && errors.length === engines.length) {
-    const error = new Error(errors.join('; '));
-    error.code = 'DETECT_FAILED';
-    throw error;
-  }
-
-  return {
-    marked: false,
-    payload: null,
-    confidence: 0,
-    engine: engines[0] || fpwm.defaultEngine(),
-  };
-};
-
 const bestEffortEvidenceUpload = async ({ buffer, contentType }) => {
   try {
     const uploaded = await uploadBuffer(buffer, 'proofmark/suspects', contentType || 'image/png');
-    return uploaded.url;
-  } catch (_) {
-    return '';
+    return {
+      url: uploaded.url,
+      preserved: true,
+      width: uploaded.width,
+      height: uploaded.height,
+    };
+  } catch (error) {
+    return {
+      url: '',
+      preserved: false,
+      preservationError: error.message,
+    };
   }
+};
+
+const compareWithPriorUrlFetch = async ({ userId, suspectUrl, sourceEvidence }) => {
+  const previous = await Verification.findOne({
+    where: { userId, source: 'url', suspectUrl },
+    attributes: ['id', 'evidence', 'createdAt'],
+    order: [['createdAt', 'DESC']],
+  });
+  const previousSource = previous?.evidence?.sourceSnapshot;
+  if (!previous || !previousSource?.sha256) return sourceEvidence;
+
+  return {
+    ...sourceEvidence,
+    previousFetch: {
+      verificationId: previous.id,
+      checkedAt: previous.createdAt,
+      sha256: previousSource.sha256,
+      sameBytes: previousSource.sha256 === sourceEvidence.sha256,
+    },
+  };
 };
 
 const resultForDetection = (detected, image) => {
@@ -121,16 +115,30 @@ const messageForResult = (result) => {
   return 'Verification could not be completed';
 };
 
-const evidenceFor = ({ result, detected, image, source, suspectUrl, suspectFilename }) => ({
+const evidenceFor = ({
+  result,
+  detected,
+  image,
+  source,
+  suspectUrl,
+  suspectFilename,
+  sourceEvidence,
+  suspectImageUrl,
+}) => ({
   result,
   source,
   suspectUrl: suspectUrl || '',
   suspectFilename: suspectFilename || '',
+  sourceSnapshot: {
+    ...(sourceEvidence || {}),
+    preservedUrl: suspectImageUrl || '',
+  },
   detected: {
     marked: Boolean(detected.marked),
     payload: detected.payload || null,
     confidence: detected.confidence ?? 0,
     engine: detected.engine || '',
+    attempts: detected.verificationAttempts || [],
   },
   matchedProperty: image ? {
     id: image.id,
@@ -304,6 +312,7 @@ const createVerification = async ({
   suspectImageUrl,
   detected,
   image,
+  sourceEvidence,
 }) => {
   const result = resultForDetection(detected, image);
   const message = messageForResult(result);
@@ -319,7 +328,54 @@ const createVerification = async ({
     confidence: detected.confidence ?? 0,
     engine: detected.engine || '',
     message,
-    evidence: evidenceFor({ result, detected, image, source, suspectUrl, suspectFilename }),
+    evidence: evidenceFor({
+      result,
+      detected,
+      image,
+      source,
+      suspectUrl,
+      suspectFilename,
+      sourceEvidence,
+      suspectImageUrl,
+    }),
+  });
+};
+
+const createIncompleteImageVerification = async ({
+  userId,
+  source,
+  suspectFilename,
+  suspectUrl,
+  suspectImageUrl,
+  sourceEvidence,
+  error,
+}) => {
+  const detectorUnavailable = error.code === 'DETECTION_UNAVAILABLE';
+  return Verification.create({
+    userId,
+    assetType: 'image',
+    source,
+    suspectFilename: suspectFilename || '',
+    suspectUrl: suspectUrl || '',
+    suspectImageUrl: suspectImageUrl || '',
+    result: 'invalid',
+    message: detectorUnavailable
+      ? 'Verification temporarily unavailable. The saved image was not classified as unmarked.'
+      : 'Verification could not be completed.',
+    evidence: {
+      result: 'invalid',
+      verificationState: 'incomplete',
+      failureType: detectorUnavailable ? 'detector_unavailable' : 'verification_error',
+      source,
+      suspectUrl: suspectUrl || '',
+      suspectFilename: suspectFilename || '',
+      sourceSnapshot: {
+        ...(sourceEvidence || {}),
+        preservedUrl: suspectImageUrl || '',
+      },
+      detectionAttempts: error.attempts || [],
+      error: error.message,
+    },
   });
 };
 
@@ -347,6 +403,11 @@ const serializeVideoVerification = (verification, asset, detected) => ({
   match: asset || undefined,
 });
 
+const formatDetectionAttempts = (attempts) => attempts.map((attempt) => (
+  `${protectionLevelName(attempt.engine)}: ${attempt.status}`
+  + ` (${attempt.requestAttempts || 1} request${attempt.requestAttempts === 1 ? '' : 's'})`
+)).join('; ');
+
 const buildReport = (verification) => {
   const evidence = verification.evidence || {};
   const image = verification.image;
@@ -358,13 +419,32 @@ const buildReport = (verification) => {
     `- Verification ID: ${verification.id}`,
     `- Checked at: ${verification.createdAt.toISOString()}`,
     `- Result: ${verification.result}`,
+    `- Verification state: ${evidence.verificationState || 'complete'}`,
     `- Asset type: ${verification.assetType || 'image'}`,
     `- Source: ${verification.source || 'upload'}`,
     `- Suspect filename: ${verification.suspectFilename || 'N/A'}`,
     `- Suspect URL: ${verification.suspectUrl || verification.suspectMediaUrl || 'N/A'}`,
     `- Detected payload: ${verification.detectedPayload || 'None'}`,
     `- Confidence: ${verification.confidence ?? 'Not reported'}`,
-    `- Engine: ${verification.engine || 'N/A'}`,
+    `- Protection level: ${protectionLevelName(verification.engine)}`,
+    '',
+    '## Source Snapshot',
+    evidence.sourceSnapshot
+      ? [
+        `- SHA-256: ${evidence.sourceSnapshot.sha256 || 'N/A'}`,
+        `- Bytes: ${evidence.sourceSnapshot.bytes ?? 'N/A'}`,
+        `- Content type: ${evidence.sourceSnapshot.contentType || 'N/A'}`,
+        `- Dimensions: ${evidence.sourceSnapshot.width && evidence.sourceSnapshot.height
+          ? `${evidence.sourceSnapshot.width}x${evidence.sourceSnapshot.height}`
+          : 'N/A'}`,
+        `- Preserved copy: ${evidence.sourceSnapshot.preservedUrl || 'Unavailable'}`,
+        `- Same bytes as prior check of this URL: ${
+          evidence.sourceSnapshot.previousFetch
+            ? (evidence.sourceSnapshot.previousFetch.sameBytes ? 'Yes' : 'No')
+            : 'No prior check'
+        }`,
+      ].join('\n')
+      : '- No source snapshot metadata was recorded.',
     '',
     '## Matched Property',
     matched
@@ -373,8 +453,16 @@ const buildReport = (verification) => {
     '',
     '## Detection Evidence',
     evidence.detected
-      ? Object.entries(evidence.detected).map(([key, value]) => `- ${key}: ${value ?? 'N/A'}`).join('\n')
-      : '- No detector evidence was reported.',
+      ? Object.entries(evidence.detected).map(([key, value]) => (
+        key === 'engine'
+          ? `- protectionLevel: ${protectionLevelName(value)}`
+          : key === 'attempts'
+            ? `- attempts: ${formatDetectionAttempts(value)}`
+          : `- ${key}: ${value ?? 'N/A'}`
+      )).join('\n')
+      : evidence.detectionAttempts?.length
+        ? `- attempts: ${formatDetectionAttempts(evidence.detectionAttempts)}`
+        : '- No detector evidence was reported.',
     '',
     '## Attribution Standard',
     evidence.strictAttribution || verification.message,
@@ -463,7 +551,15 @@ const completeVideoVerificationJob = async (job) => {
   };
 };
 
-const runVerification = async ({ req, buffer, filename, contentType, source, suspectUrl }) => {
+const runVerification = async ({
+  req,
+  buffer,
+  filename,
+  source,
+  suspectUrl,
+  suspectImageUrl,
+  sourceEvidence,
+}) => {
   const knownImages = await Image.findAll({
     where: { userId: req.user.id },
     attributes: knownImageAttributes,
@@ -483,7 +579,6 @@ const runVerification = async ({ req, buffer, filename, contentType, source, sus
     })
     : null;
 
-  const suspectImageUrl = await bestEffortEvidenceUpload({ buffer, contentType });
   const verification = await createVerification({
     userId: req.user.id,
     source,
@@ -492,6 +587,7 @@ const runVerification = async ({ req, buffer, filename, contentType, source, sus
     suspectImageUrl,
     detected,
     image,
+    sourceEvidence,
   });
 
   if (source === 'url' && verification.result === 'matched') {
@@ -656,58 +752,117 @@ router.post('/video', protect, videoUpload.single('video'), async (req, res) => 
 });
 
 router.post('/url', protect, async (req, res) => {
+  let remote = null;
+  let preserved = { url: '', preserved: false };
+  let sourceEvidence = null;
   try {
     if (!req.body.url) return res.status(400).json({ message: 'url is required' });
-    const remote = await fetchRemoteImage(req.body.url);
+    remote = await fetchRemoteImage(req.body.url);
+    preserved = await bestEffortEvidenceUpload({
+      buffer: remote.buffer,
+      contentType: remote.contentType,
+    });
+    sourceEvidence = await compareWithPriorUrlFetch({
+      userId: req.user.id,
+      suspectUrl: remote.url,
+      sourceEvidence: {
+        ...remote.evidence,
+        preserved: preserved.preserved,
+        preservationError: preserved.preservationError || '',
+      },
+    });
     const result = await runVerification({
       req,
       buffer: remote.buffer,
       filename: remote.filename,
-      contentType: remote.contentType,
       source: 'url',
       suspectUrl: remote.url,
+      suspectImageUrl: preserved.url,
+      sourceEvidence,
     });
     return res.json(result);
   } catch (error) {
-    await Verification.create({
+    const verification = await createIncompleteImageVerification({
       userId: req.user.id,
       source: 'url',
-      suspectUrl: req.body.url || '',
-      result: 'invalid',
-      message: error.message,
-      evidence: { result: 'invalid', source: 'url', suspectUrl: req.body.url || '' },
+      suspectFilename: remote?.filename || '',
+      suspectUrl: remote?.url || req.body.url || '',
+      suspectImageUrl: preserved.url,
+      sourceEvidence,
+      error,
     });
-    return res.status(500).json({ message: 'Verify failed', error: error.message });
+    const unavailable = error.code === 'DETECTION_UNAVAILABLE';
+    return res.status(unavailable ? 503 : 500).json({
+      message: unavailable
+        ? preserved.preserved
+          ? 'Verification temporarily unavailable. Your downloaded image was saved for evidence; please retry.'
+          : 'Verification temporarily unavailable. Please retry.'
+        : 'Verification could not be completed',
+      error: error.message,
+      retryable: unavailable,
+      verificationId: verification.id,
+      verification: serializeVerification(verification, null, {}),
+    });
   }
 });
 
 // Verify whether an uploaded suspect image is one of your watermarked images.
 router.post('/', protect, upload.single('image'), async (req, res) => {
+  let preserved = { url: '', preserved: false };
+  let sourceEvidence = null;
   try {
     if (!req.file) return res.status(400).json({ message: 'image file is required' });
+    preserved = await bestEffortEvidenceUpload({
+      buffer: req.file.buffer,
+      contentType: req.file.mimetype,
+    });
+    sourceEvidence = {
+      ...describeImageBuffer(req.file.buffer, req.file.mimetype, {
+        originalFilename: req.file.originalname || '',
+      }),
+      preserved: preserved.preserved,
+      preservationError: preserved.preservationError || '',
+    };
     const result = await runVerification({
       req,
       buffer: req.file.buffer,
       filename: req.file.originalname,
-      contentType: req.file.mimetype,
       source: 'upload',
       suspectUrl: '',
+      suspectImageUrl: preserved.url,
+      sourceEvidence,
     });
     return res.json(result);
   } catch (error) {
     try {
-      await Verification.create({
+      const verification = await createIncompleteImageVerification({
         userId: req.user.id,
         source: 'upload',
         suspectFilename: req.file?.originalname || '',
-        result: 'invalid',
-        message: error.message,
-        evidence: { result: 'invalid', source: 'upload' },
+        suspectUrl: '',
+        suspectImageUrl: preserved.url,
+        sourceEvidence,
+        error,
+      });
+      const unavailable = error.code === 'DETECTION_UNAVAILABLE';
+      return res.status(unavailable ? 503 : 500).json({
+        message: unavailable
+          ? preserved.preserved
+            ? 'Verification temporarily unavailable. Your uploaded image was saved for evidence; please retry.'
+            : 'Verification temporarily unavailable. Please retry.'
+          : 'Verification could not be completed',
+        error: error.message,
+        retryable: unavailable,
+        verificationId: verification.id,
+        verification: serializeVerification(verification, null, {}),
       });
     } catch {
       // Ignore logging failure so the API can return the original error.
     }
-    return res.status(500).json({ message: 'Verify failed', error: error.message });
+    return res.status(500).json({
+      message: 'Verification could not be completed',
+      error: error.message,
+    });
   }
 });
 

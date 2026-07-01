@@ -16,13 +16,20 @@ import api from '../../api.js';
 import {
   Dropzone, EmptyState, Spinner, downloadBlob, formatDate, formatDateTime,
 } from '../../components/ui/widgets.jsx';
+import { protectionLevelName } from '../../protectionLevels.js';
 
 const OUTCOME = {
   matched: { icon: BadgeCheck, title: 'Matched your property', tone: 'success' },
   unknown_owner: { icon: CircleHelp, title: 'Watermark found — not yours', tone: 'warning' },
   not_found: { icon: CircleMinus, title: 'No ProofMark found', tone: 'neutral' },
-  invalid: { icon: AlertCircle, title: 'Could not verify', tone: 'danger' },
+  invalid: { icon: AlertCircle, title: 'Verification unavailable', tone: 'danger' },
 };
+
+const resultLabel = (verification) => (
+  verification.evidence?.verificationState === 'incomplete'
+    ? 'incomplete'
+    : verification.result.replace('_', ' ')
+);
 
 export default function Verify() {
   const navigate = useNavigate();
@@ -57,7 +64,14 @@ export default function Verify() {
       setResult(data);
       loadHistory();
     } catch (e2) {
-      setErr(e2.response?.data?.message || e2.response?.data?.error || 'Verify failed');
+      const response = e2.response?.data;
+      if (response?.verification) {
+        setResult(response.verification);
+        setErr('');
+        loadHistory();
+      } else {
+        setErr(response?.message || response?.error || 'Verify failed');
+      }
     } finally {
       setBusy(false);
     }
@@ -152,7 +166,22 @@ export default function Verify() {
               <div className="verify-evidence">
                 <div><span>Detected payload</span><strong>{result.detected?.payload || '—'}</strong></div>
                 <div><span>Confidence</span><strong>{result.detected?.confidence != null ? `${Math.round(result.detected.confidence * 100)}%` : '—'}</strong></div>
-                <div><span>Engine</span><strong>{result.detected?.engine || '—'}</strong></div>
+                <div>
+                  <span>Protection level</span>
+                  <strong>{result.detected?.engine ? protectionLevelName(result.detected.engine) : '—'}</strong>
+                </div>
+                {result.evidence?.sourceSnapshot?.sha256 && (
+                  <div>
+                    <span>Source fingerprint</span>
+                    <strong>{result.evidence.sourceSnapshot.sha256.slice(0, 12)}</strong>
+                  </div>
+                )}
+                {result.evidence?.sourceSnapshot?.previousFetch && (
+                  <div>
+                    <span>Same bytes as prior URL check</span>
+                    <strong>{result.evidence.sourceSnapshot.previousFetch.sameBytes ? 'Yes' : 'No'}</strong>
+                  </div>
+                )}
               </div>
 
               {result.id && (
@@ -184,8 +213,8 @@ export default function Verify() {
               <tbody>
                 {history.map((v) => (
                   <tr key={v.id}>
-                    <td><span className={`app-pill ${OUTCOME[v.result]?.tone || 'neutral'}`}>{v.result.replace('_', ' ')}</span></td>
-                    <td>{v.image?.title || '—'}</td>
+                    <td><span className={`app-pill ${OUTCOME[v.result]?.tone || 'neutral'}`}>{resultLabel(v)}</span></td>
+                    <td>{v.image?.title || v.message || '—'}</td>
                     <td>{v.detectedPayload || '—'}</td>
                     <td className="app-muted">{formatDateTime(v.createdAt)}</td>
                     <td>

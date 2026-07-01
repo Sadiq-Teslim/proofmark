@@ -9,6 +9,11 @@ import {
 } from '../../components/ui/widgets.jsx';
 
 const TONE = { matched: 'success', unknown_owner: 'warning', not_found: 'neutral', invalid: 'danger' };
+const resultLabel = (verification) => (
+  verification.evidence?.verificationState === 'incomplete'
+    ? 'incomplete'
+    : verification.result.replace('_', ' ')
+);
 
 export default function Evidence() {
   const [verifications, setVerifications] = useState([]);
@@ -78,7 +83,7 @@ export default function Evidence() {
           <ul className="pd-list">
             {verifications.map((v) => (
               <li key={v.id}>
-                <span className={`app-pill ${TONE[v.result] || 'neutral'}`}>{v.result.replace('_', ' ')}</span>
+                <span className={`app-pill ${TONE[v.result] || 'neutral'}`}>{resultLabel(v)}</span>
                 {v.assetType === 'video' && <span className="app-pill neutral"><Video size={12} /> video</span>}
                 <span className="pd-list-main">
                   {v.assetType === 'video' && v.asset

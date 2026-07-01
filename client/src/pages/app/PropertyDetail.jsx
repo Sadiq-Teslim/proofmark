@@ -7,6 +7,7 @@ import api from '../../api.js';
 import {
   EmptyState, Spinner, downloadBlob, formatDate, formatDateTime,
 } from '../../components/ui/widgets.jsx';
+import { protectionLevelName } from '../../protectionLevels.js';
 
 const TABS = ['Overview', 'Verifications', 'Sightings', 'Evidence'];
 
@@ -80,7 +81,7 @@ export default function PropertyDetail() {
           <h2>{image.title}</h2>
           <div className="pd-meta">
             <span><Fingerprint size={14} /> Payload #{image.payload}</span>
-            <span>Engine: {image.engine}</span>
+            <span>Protection: {protectionLevelName(image.engine)}</span>
             <span>Protected {formatDate(image.createdAt)}</span>
           </div>
           <div className="pd-actions">

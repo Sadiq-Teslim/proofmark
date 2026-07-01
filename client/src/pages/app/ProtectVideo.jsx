@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import api from '../../api.js';
 import { Dropzone, Spinner, downloadBlob } from '../../components/ui/widgets.jsx';
+import { protectionLevelName } from '../../protectionLevels.js';
 
 const VIDEO_RESILIENCE = [
   'H.264 recompression',
@@ -128,7 +129,7 @@ export default function ProtectVideo() {
             previewType="video"
           />
 
-          <label className="app-label">Protection mode</label>
+          <label className="app-label">Protection level</label>
           <div className="protect-modes">
             <button
               type="button"
@@ -137,8 +138,8 @@ export default function ProtectVideo() {
             >
               <ShieldCheck size={18} />
               <div>
-                <strong>Standard video</strong>
-                <span>CPU-safe forensic frame watermarking for V1 testing</span>
+                <strong>ProofMark Standard</strong>
+                <span>Reliable protection for everyday video publishing and reposting</span>
               </div>
               {engine === 'qim-dct' && <Check className="protect-mode-check" size={18} />}
             </button>
@@ -146,12 +147,12 @@ export default function ProtectVideo() {
               type="button"
               className="protect-mode disabled"
               disabled
-              title="Strong video requires the neural worker and benchmark gates"
+              title="ProofMark Advanced for video is coming soon"
             >
               <Sparkles size={18} />
               <div>
-                <strong>Strong video - gated</strong>
-                <span>VideoSeal and audio corroboration after infrastructure gates pass</span>
+                <strong>ProofMark Advanced · coming soon</strong>
+                <span>Stronger protection for heavily edited and transformed videos</span>
               </div>
             </button>
           </div>
@@ -179,7 +180,7 @@ export default function ProtectVideo() {
               <h3>{result.title}</h3>
               <p className="app-muted"><Fingerprint size={14} /> Payload #{result.payload}</p>
               <div className="verify-evidence">
-                <div><span>Engine</span><strong>{result.engine}</strong></div>
+                <div><span>Protection level</span><strong>{protectionLevelName(result.engine)}</strong></div>
                 <div><span>Status</span><strong>{result.status}</strong></div>
                 <div><span>Duration</span><strong>{result.durationSeconds ? `${Math.round(result.durationSeconds)}s` : '-'}</strong></div>
               </div>
